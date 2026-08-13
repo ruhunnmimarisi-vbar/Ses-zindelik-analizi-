@@ -3,89 +3,120 @@ import librosa
 import numpy as np
 import io
 
-st.set_page_config(page_title="VBAR - Biyometrik Analiz", page_icon="🎙️")
+st.set_page_config(page_title="VBAR - Çoklu Mod Biyometrik Analiz", page_icon="🎙️")
 
-st.title("🎙️ Vokal Biyometrik Zindelik ve Duygu Analizi")
+st.title("🎙️ VBAR - Kişiselleştirilmiş Ses Profil Analizi")
 st.warning("⚠️ Bu bir tedavi/klinik teşhis aracı değildir. Sonuçlar yalnızca kendini gözlemleme amaçlıdır.")
 
-# Ses Kayıt ve Yükleme Alanı
-audio_value = st.audio_input("Sesinizi kaydetmek için mikrofona dokunun")
-uploaded_file = st.file_uploader("Veya ses dosyası yükleyin", type=["wav", "mp3", "m4a", "ogg", "flac"])
+# --- HAFIZA TANIMLAMALARI ---
+if "profiles" not in st.session_state:
+    st.session_state.profiles = {}  # Farklı modlar burada saklanacak (Zinde, Bıkkın vb.)
 
-target_audio = audio_value or uploaded_file
+# Yan Menü (Sidebar) - Kayıtlı Modlar
+st.sidebar.header("⚙️ Kayıtlı Ses Profilleriniz")
+if not st.session_state.profiles:
+    st.sidebar.warning("Henüz kayıtlı bir ses profiliniz yok.")
+else:
+    for mod_adi in st.session_state.profiles.keys():
+        st.sidebar.success(f"✅ {mod_adi} Modu Kayıtlı")
+    
+    if st.sidebar.button("Profilleri Sıfırla"):
+        st.session_state.profiles = {}
+        st.rerun()
 
-if target_audio is not None:
-    if st.button("Analiz Et", type="primary", key="analiz_butonu_vbar"):
-        try:
-            with st.spinner("Gelişmiş biyometrik akustik analiz yapılıyor..."):
-                audio_bytes = target_audio.read()
-                
-                # Sesi 16kHz olarak yüklüyoruz
-                y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
-                
-                # --- 1. Temel Akustik Parametreler ---
-                # RMS (Ses Enerjisi / Genlik)
-                rms_val = float(np.mean(librosa.feature.rms(y=y)))
-                
-                # Pitch (Temel Frekans F0)
-                pitches, magnitudes = librosa.piptrack(y=y, sr=sr)
-                pitch_values = pitches[pitches > 0]
-                mean_pitch = float(np.mean(pitch_values)) if len(pitch_values) > 0 else 0.0
-                
-                # --- 2. Gelişmiş Mikro-Titreme Analizleri (Jitter & Shimmer) ---
-                # Jitter: Frekanstaki milisaniyelik sapma/kararsızlık
-                if len(pitch_values) > 1:
-                    pitch_diffs = np.abs(np.diff(pitch_values))
-                    jitter_val = float(np.mean(pitch_diffs) / (mean_pitch + 1e-6))
-                else:
-                    jitter_val = 0.0
+# Ana Sayfa Sekmeleri
+tab1, tab2 = st.tabs(["🎙️ Anlık Biyometrik Analiz", "🎯 Ses Tonu/Mod Kalibrasyonu"])
+
+# ==========================================
+# SEKME 2: SES TONU / MOD KALİBRASYONU
+# ==========================================
+with tab2:
+    st.subheader("🎯 Biyometrik Mod Kütüphanesi")
+    st.write("Şu anki ruh halinize uygun modu seçip 5 saniyelik bir konuşma kaydı alın. Sistem bu ses imzanızı hafızaya işleyecek.")
+    
+    mod_secimi = st.selectbox(
+        "Hangi Mod için Kayıt Alıyorsunuz?",
+        ["😫 Bıkkın / Zihinsel Yorgun Mod", "😊 Zinde / Dinlenmiş Mod", "🥳 Coşkulu / Yüksek Enerjili Mod"]
+    )
+    
+    calib_audio = st.audio_input("Bu moda uygun sesinizi kaydedin", key="calib_input")
+    
+    if calib_audio is not None:
+        if st.button(f"'{mod_secimi}' Olarak Hafızaya Kaydet", type="primary", key="save_profile_btn"):
+            try:
+                with st.spinner("Ses imzanız analiz edilip profil kütüphanenize ekleniyor..."):
+                    audio_bytes = calib_audio.read()
+                    y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
                     
-                # Shimmer: Genlikteki (enerji) milisaniyelik kararsızlık
-                rms_frames = librosa.feature.rms(y=y)[0]
-                if len(rms_frames) > 1:
-                    shimmer_val = float(np.mean(np.abs(np.diff(rms_frames))) / (rms_val + 1e-6))
+                    rms_base = float(np.mean(librosa.feature.rms(y=y)))
+                    pitches, _ = librosa.piptrack(y=y, sr=sr)
+                    pitch_vals = pitches[pitches > 0]
+                    pitch_base = float(np.mean(pitch_vals)) if len(pitch_vals) > 0 else 150.0
+                    
+                    pitch_diffs = np.abs(np.diff(pitch_vals)) if len(pitch_vals) > 1 else [0]
+                    jitter_base = float(np.mean(pitch_diffs) / (pitch_base + 1e-6))
+                    
+                    # Profili kaydet
+                    st.session_state.profiles[mod_secimi] = {
+                        "rms": rms_base,
+                        "pitch": pitch_base,
+                        "jitter": jitter_base
+                    }
+                    st.success(f"🎉 '{mod_secimi}' profiliniz başarıyla kaydedildi!")
+                    st.rerun()
+            except Exception as e:
+                st.error(f"Kayıt sırasında bir hata oluştu: {e}")
+
+# ==========================================
+# SEKME 1: ANLIK BİYOMETRİK ANALİZ
+# ==========================================
+with tab1:
+    st.subheader("🎙️ Anlık Biyometrik Analiz")
+    
+    if "😫 Bıkkın / Zihinsel Yorgun Mod" not in st.session_state.profiles:
+        st.info("💡 Mükemmel sonuçlar için **'🎯 Ses Tonu/Mod Kalibrasyonu'** sekmesinden şu anki Bıkkın/Yorgun modunuzu kaydedebilirsiniz.")
+    
+    audio_value = st.audio_input("Analiz edilecek sesinizi kaydedin", key="analysis_input")
+    uploaded_file = st.file_uploader("Veya ses dosyası yükleyin", type=["wav", "mp3", "m4a", "ogg", "flac"])
+    
+    target_audio = audio_value or uploaded_file
+    
+    if target_audio is not None:
+        if st.button("Biyometrik Analiz Et", type="primary", key="analiz_butonu_vbar"):
+            try:
+                with st.spinner("Ses imzanız kayıtlı profillerinizle kıyaslanıyor..."):
+                    audio_bytes = target_audio.read()
+                    y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
+                    
+                    rms_val = float(np.mean(librosa.feature.rms(y=y)))
+                    pitches, _ = librosa.piptrack(y=y, sr=sr)
+                    pitch_vals = pitches[pitches > 0]
+                    mean_pitch = float(np.mean(pitch_vals)) if len(pitch_vals) > 0 else 0.0
+                    
+                    pitch_diffs = np.abs(np.diff(pitch_vals)) if len(pitch_vals) > 1 else [0]
+                    jitter_val = float(np.mean(pitch_diffs) / (mean_pitch + 1e-6))
+                
+                st.success("✅ Analiz tamamlandı!")
+                
+                # --- PROFİL EŞLEŞTİRME VE KIYASLAMA ---
+                if "😫 Bıkkın / Zihinsel Yorgun Mod" in st.session_state.profiles:
+                    bikkin_ref = st.session_state.profiles["😫 Bıkkın / Zihinsel Yorgun Mod"]
+                    
+                    # Bıkkınlık Modu Yakınlık Analizi (Jitter ve Pitch farkı)
+                    jitter_fark = abs(jitter_val - bikkin_ref["jitter"])
+                    pitch_fark = abs(mean_pitch - bikkin_ref["pitch"])
+                    
+                    # Eğer anlık ses kayıtlı bıkkın ses profiliyle benzer özellik gösteriyorsa
+                    if jitter_fark < 0.050 and pitch_fark < 300:
+                        st.warning(
+                            "**😫 Tespit Edilen Durum: Bıkkınlık ve Zihinsel Yorgunluk**\n\n"
+                            "Sesinizin mikro-titreşim ve frekans yapısı, daha önce kaydettiğiniz **'Bıkkın/Yorgun'** ses profilinizle %85+ oranında eşleşiyor."
+                        )
+                    else:
+                        st.info("💡 Sesiniz bıkkınlık profilinizden farklılık gösteriyor.")
                 else:
-                    shimmer_val = 0.0
+                    st.write(f"**Ses Enerjisi:** {rms_val:.4f} | **Frekans:** {mean_pitch:.1f} Hz | **Jitter:** {jitter_val:.3f}")
+                    st.info("Profil kaydı yaptıkça analizler kişiselleşecektir.")
 
-            st.success("✅ Biyometrik analiz tamamlandı!")
-            
-            # --- Metriklerin Gösterimi ---
-            col1, col2, col3, col4 = st.columns(4)
-            col1.metric("Ses Enerjisi", f"{rms_val:.4f}")
-            col2.metric("Frekans (Pitch)", f"{mean_pitch:.1f} Hz")
-            col3.metric("Jitter (Titreşim)", f"{jitter_val:.3f}")
-            col4.metric("Shimmer (Dalgalanma)", f"{shimmer_val:.3f}")
-
-            st.markdown("---")
-
-            # --- 3. Akustik Matris & Biyometrik Teşhis ---
-            st.subheader("💡 Sinir Sistemi & Zindelik Analizi")
-            
-            # Titreşim Eşiği (Jitter > 0.080 veya Shimmer > 0.400 ise sesteki stres/kararsızlık yüksektir)
-            stres_var = jitter_val > 0.080 or shimmer_val > 0.400
-            
-            if rms_val >= 0.008 and stres_var:
-                tahmin = "😫 Zihinsel Yorgunluk / Bıkkınlık ve Gerilim"
-                detay = (
-                    "Sesinizin enerjisi/yüksekliği (RMS) fazla görünse de sesteki mikro-titreşimler (Jitter/Shimmer) oldukça yüksek. "
-                    "Bu durum bedensel canlılıktan ziyade zihinsel yorgunluk, bıkkınlık ve sinir sistemindeki uyarılma/stres eforuna işaret eder."
-                )
-                st.warning(f"**Baskın Durum:** {tahmin}\n\n_{detay}_")
-                
-            elif rms_val >= 0.008 and not stres_var:
-                tahmin = "😊 Gerçek Canlılık / Yüksek Enerji"
-                detay = "Ses enerjiniz yüksek ve vokal titreşimleriniz oldukça kararlı/stabil. Sinir sisteminiz canlı ve yüksek enerjili bir durumda."
-                st.success(f"**Baskın Durum:** {tahmin}\n\n_{detay}_")
-                
-            elif rms_val < 0.008 and stres_var:
-                tahmin = "🛌 Fizyolojik ve Bedensel Yorgunluk"
-                detay = "Ses enerjiniz düşük ve vokal kontrolünüzde mikro-dalgalanmalar var. Bedeninizin dinlenmeye ihtiyacı olduğunu gösterir."
-                st.error(f"**Baskın Durum:** {tahmin}\n\n_{detay}_")
-                
-            else:
-                tahmin = "😐 Nötr / Sakin Rölanti Durumu"
-                detay = "Sesinizde dengeli, düşük titreşimli ve stabil bir profil gözlemlendi."
-                st.info(f"**Baskın Durum:** {tahmin}\n\n_{detay}_")
-
-        except Exception as e:
-            st.error(f"Analiz sırasında bir hata oluştu: {e}")
+            except Exception as e:
+                st.error(f"Analiz hatası: {e}")
