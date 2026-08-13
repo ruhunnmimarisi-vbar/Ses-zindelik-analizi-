@@ -224,3 +224,30 @@ st.markdown(
     birleşimle hesaplanıyor.
     """
 )
+import streamlit as st
+import librosa
+import io
+
+st.title("Ses Zindelik Analizi")
+st.warning("⚠️ Bu bir tedavi/klinik teşhis aracı değildir. Sonuçları yalnızca kendini gözlemleme amaçlanmaktadır.")
+
+# 1. Ses Kaydetme / Yükleme
+audio_value = st.audio_input("Sesinizi kaydetmek için mikrofona dokunun")
+uploaded_file = st.file_uploader("Veya ses dosyası yükleyin", type=["wav", "mp3", "m4a", "3ga", "ogg", "flac"])
+
+target_audio = audio_value or uploaded_file
+
+# 2. Analiz Butonu (Çakışmayı önlemek için key eklendi)
+if target_audio is not None:
+    if st.button("Analiz Et", type="primary", key="analiz_butonu_vbar"):
+        try:
+            audio_bytes = target_audio.read()
+            y, sr = librosa.load(io.BytesIO(audio_bytes), sr=None)
+            
+            st.success("Ses başarıyla işlendi!")
+            
+            # --- MEVCUT ANALİZ HESAPLAMALARINIZ BURADA KALSIN ---
+            
+        except Exception as e:
+            st.error(f"Ses işlenirken hata oluştu: {e}")
+            
