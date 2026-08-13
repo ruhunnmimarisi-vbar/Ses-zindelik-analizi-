@@ -1,26 +1,44 @@
 import streamlit as st
+from streamlit_audio_recorder import st_audio_recorder
 import librosa
 import numpy as np
-import pickle
 
-st.title("Vokal Biyomarker & Zindelik Analizi")
-st.write("Lütfen 5 saniyelik bir ses kaydı yapın veya yükleyin.")
+st.title("🎙️ Ses Analiz ve Zindelik Uygulaması")
+st.write("Butona basın, 5 saniye boyunca konuşun ve analizi görün.")
 
-# Ses dosyası yükleme/kaydetme
-audio_file = st.file_uploader("Ses Dosyası (.wav)", type=["wav"])
+# Ses Kaydedici Bileşeni
+audio_bytes = st_audio_recorder(
+    text="Kaydı Başlatmak için Tıklayın",
+    recording_color="#e74c3c",
+    neutral_color="#95a5a6",
+    icon_name="microphone",
+    icon_size="3x",
+)
 
-if audio_file is not None:
-    # 1. Sesi yükle
-    y, sr = librosa.load(audio_file, duration=5.0)
+if audio_bytes:
+    # Kaydedilen sesi bir dosyaya yazalım ki işleyebilelim
+    with open('ses_kaydi.wav', 'wb') as f:
+        f.write(audio_bytes)
     
-    # 2. Öznitelik çıkarımı (MFCC)
+    st.audio(audio_bytes, format='audio/wav')
+    
+    # Sesi işleme (Analiz kısmı buraya gelecek)
+    y, sr = librosa.load('ses_kaydi.wav', duration=5.0)
+    
+    # MFCC Özelliklerini çıkarma (Yapay zeka bu veriyi kullanacak)
     mfccs = np.mean(librosa.feature.mfcc(y=y, sr=sr, n_mfcc=40).T, axis=0)
     
-    # 3. Eğitilmiş modeli çağır ve tahmin et (Temsili)
-    # model = pickle.load(open("yapay_zeka_modeli.pkl", "rb"))
-    # tahmin = model.predict([mfccs])
+    # Örnek bir analiz sonucu (Daha sonra buraya yapay zeka modelinizi bağlayacağız)
+    # Şimdilik "sesin gücü" üzerinden basit bir tahmin gösterelim:
+    ses_enerjisi = np.sum(np.abs(y))
     
-    st.success("Ses analizi tamamlandı!")
-    st.metric(label="Tahmini Zindelik / Enerji Seviyesi", value="%78", delta="Sakin")
-    st.info("Sinir sisteminiz dengeli görünüyor. Mevcut odaklanma durumunuzu koruyabilirsiniz.")
+    st.success("Ses Analiz Edildi!")
+    
+    # Burayı eğitilmiş modelinize göre değiştireceksiniz
+    if ses_enerjisi > 0.5:
+        st.write("Durum: **Yüksek Enerji / Heyecanlı**")
+    else:
+        st.write("Durum: **Sakin / Düşük Enerji**")
+
+    st.write(f"Ses Öznitelik Boyutu: {mfccs.shape}")
     
