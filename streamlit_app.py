@@ -2,12 +2,11 @@ import streamlit as st
 import librosa
 import numpy as np
 import io
-import torch  # Eksik olan torch kütüphanesi eklendi
+import torch
 
 # 1. Hugging Face Modeli (Transformers)
 from transformers import pipeline
 
-# Herkese açık, stabil ana model
 @st.cache_resource
 def load_emotion_model():
     return pipeline("audio-classification", model="facebook/wav2vec2-base-960h")
@@ -26,12 +25,11 @@ if target_audio is not None:
         try:
             audio_bytes = target_audio.read()
             
-            # --- 1. Akustik ve Zindelik Analizi ---
-            y, sr = librosa.load(io.BytesIO(audio_bytes), sr=None)
+            # Sesi librosa ile doğrudan sayısal diziye dönüştürüyoruz (ffmpeg bypass edilir)
+            y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
             
-            # Ses Enerjisi (RMS / Genlik)
+            # --- 1. Akustik ve Zindelik Analizi ---
             rms_val = float(np.mean(librosa.feature.rms(y=y)))
-            # MFCC
             mfcc_val = float(np.mean(librosa.feature.mfcc(y=y, sr=sr)))
             
             st.success("Ses başarıyla analiz edildi!")
@@ -39,7 +37,6 @@ if target_audio is not None:
             st.write(f"**Ses Enerjisi (Genlik):** {rms_val:.4f}")
             st.write(f"**Mel-Frekans Katsayısı (MFCC Ort.):** {mfcc_val:.2f}")
             
-            # Zindelik Değerlendirmesi
             if rms_val < 0.005:
                 zindelik_yorum = "💡 **Anlık Zindelik Yorumu:** Parasempatik Sinir Sistemi Baskın (Sakin/Düşük Enerji): Ses tonunuz dingin veya hafif bir fizyolojik yorgunluk işaret ediyor. Rölanti veya dinlenme durumundasınız."
             else:
@@ -50,7 +47,8 @@ if target_audio is not None:
             # --- 2. Akustik Ton Analizi ---
             with st.spinner("Model ses analizini tamamlıyor..."):
                 classifier = load_emotion_model()
-                results = classifier(audio_bytes)
+                # Dosya yolu veya byte yerine doğrudan işlenmiş dizi (raw array) veriyoruz:
+                results = classifier({"raw": y, "sampling_rate": sr})
                 
             st.subheader("🎭 Ses Karakteri ve Ton Analizi")
             top_result = results[0]
@@ -58,3 +56,4 @@ if target_audio is not None:
 
         except Exception as e:
             st.error(f"Analiz sırasında bir hata oluştu: {e}")
+            
