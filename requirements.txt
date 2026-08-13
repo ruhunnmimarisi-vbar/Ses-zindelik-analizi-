@@ -6,5 +6,5 @@ torchaudio
 streamlit
 librosa
 google-generativeai
-numpy
 matplotlib
+
