@@ -1,7 +1,10 @@
-streamlit
 audio-recorder-streamlit
-librosa
 numpy
 transformers 
 torch
 torchaudio
+streamlit
+librosa
+google-generativeai
+numpy
+matplotlib
