@@ -154,4 +154,3 @@ if audio_file:
                     st.info("""
                     * **Önerilen Eylem:** Kısa bir mola verip temponuzu gözden geçirin.
                     """)
-                    
