@@ -6,10 +6,10 @@ import io
 # 1. Hugging Face Duygu Tanıma Modeli (Transformers)
 from transformers import pipeline
 
-# Modeli belleğe alıyoruz (Sayfa her yenilendiğinde tekrar tekrar yüklemesin diye cache kullanıyoruz)
+# Modeli belleğe alıyoruz
 @st.cache_resource
 def load_emotion_model():
-    return pipeline("audio-classification", model="jonatasgrosman/wav2vec2-large-xlsr-53-emotion")
+    return pipeline("audio-classification", model="ehcalabrese/wav2vec2-lg-xlsr-en-speech-emotion-recognition")
 
 st.title("Vokal Biyometrik Zindelik ve Duygu Analizi")
 st.warning("⚠️ Bu bir tedavi/klinik teşhis aracı değildir. Sonuçlar yalnızca kendini gözlemleme amaçlıdır.")
