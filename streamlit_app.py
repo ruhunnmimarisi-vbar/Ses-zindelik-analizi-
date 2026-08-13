@@ -1,77 +1,47 @@
 import streamlit as st
-from audio_recorder_streamlit import audio_recorder
 import librosa
-import numpy as np
+import io
 
-# Page Configuration
-st.set_page_config(page_title="Vokal Biyomarker & Zindelik Analizi", page_icon="🎙️")
+# 1. Hugging Face Duygu Tanıma Modeli (Transformers)
+from transformers import pipeline
 
-st.title("🎙️ Vokal Biyomarker & Zindelik Analizi")
-st.write(
-    "Ses tonunuz, otonom sinir sisteminizin ve zihinsel yorgunluğunuzun anlık aynasıdır. "
-    "Aşağıdaki mikrofona tıklayarak yaklaşık 5 saniyelik bir ses kaydı yapın."
-)
+# Modeli belleğe alıyoruz (Sayfa her yenilendiğinde tekrar tekrar yüklemesin diye cache kullanıyoruz)
+@st.cache_resource
+def load_emotion_model():
+    return pipeline("audio-classification", model="jonatasgrosman/wav2vec2-large-xlsr-53-emotion")
 
-st.divider()
+st.title("Vokal Biyometrik Zindelik ve Duygu Analizi")
+st.warning("⚠️ Bu bir tedavi/klinik teşhis aracı değildir. Sonuçlar yalnızca kendini gözlemleme amaçlıdır.")
 
-# 1. Ses Kayıt Alanı
-st.subheader("1. Sesinizi Kaydedin")
-audio_bytes = audio_recorder(
-    text="Kayda başlamak/durdurmak için ikona tıklayın",
-    recording_color="#e74c3c",
-    neutral_color="#3498db",
-    icon_size="3x",
-)
+# Ses Kayıt ve Yükleme Alanı
+audio_value = st.audio_input("Sesinizi kaydetmek için mikrofona dokunun")
+uploaded_file = st.file_uploader("Veya ses dosyası yükleyin", type=["wav", "mp3", "m4a", "3ga", "ogg", "flac"])
 
-# 2. Ses Kaydedildiğinde Çalışacak Kısım
-if audio_bytes:
-    # Kaydedilen sesi oynatıcıda göster
-    st.audio(audio_bytes, format="audio/wav")
-    
-    # Sesi geçici olarak dosyaya yaz
-    with open("temp_audio.wav", "wb") as f:
-        f.write(audio_bytes)
-    
-    st.divider()
-    st.subheader("2. Akustik Analiz ve Tahmin")
-    
-    with st.spinner("Ses parametreleriniz çıkarılıyor ve analiz ediliyor..."):
+target_audio = audio_value or uploaded_file
+
+if target_audio is not None:
+    if st.button("Analiz Et", type="primary", key="analiz_butonu_vbar"):
         try:
-            # Sesi librosa ile yükle (ilk 5 saniyesi)
-            y, sr = librosa.load("temp_audio.wav", duration=5.0)
+            audio_bytes = target_audio.read()
             
-            # Akustik Öznitelik Çıkarımı (Yapay Zeka Modeline Gidecek Veriler)
-            mfccs = np.mean(librosa.feature.mfcc(y=y, sr=sr, n_mfcc=40).T, axis=0)
-            pitch = np.mean(librosa.feature.chroma_stft(y=y, sr=sr))
-            energy = np.sum(y**2) / len(y)
+            # --- 1. Temel Akustik Analiz (Zindelik & Genlik) ---
+            y, sr = librosa.load(io.BytesIO(audio_bytes), sr=None)
+            duration = librosa.get_duration(y=y, sr=sr)
             
-            st.success("Ses başarıyla analiz edildi!")
-            
-            # Metrikleri Ekrana Bastırma
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.metric(label="Ses Enerjisi (Genlik)", value=f"{energy:.4f}")
+            st.success("Ses başarıyla işlendi!")
+            st.write(f"⏱️ **Ses Süresi:** {duration:.2f} saniye")
+
+            # --- 2. Duygu Tanıma Analizi (Transformers) ---
+            with st.spinner("Duygu analizi yapılıyor..."):
+                classifier = load_emotion_model()
+                # Duygu tahminini çalıştırıyoruz
+                emotion_results = classifier(audio_bytes)
                 
-            with col2:
-                st.metric(label="Mel-Frekans Katsayısı (MFCC Ort.)", value=f"{np.mean(mfccs):.2f}")
-            
-            # Temsili Sinir Sistemi Denge Değerlendirmesi
-            # (Buraya daha sonra eğitilen yapay zeka model.predict() bağlanacak)
-            st.info("💡 **Anlık Zindelik Yorumu:**")
-            if energy > 0.01:
-                st.write(
-                    "**Sempatik Sinir Sistemi Baskın (Yüksek Uyarılma):** "
-                    "Ses tonunuzda yüksek enerji ve odak tespit edildi. "
-                    "Ancak uzun süreli bu seviye zihinsel yorgunluğa yol açabilir."
-                )
-            else:
-                st.write(
-                    "**Parasempatik Sinir Sistemi Baskın (Sakin/Düşük Enerji):** "
-                    "Ses tonunuz dingin veya hafif bir fizyolojik yorgunluk işaret ediyor. "
-                    "Rölanti veya dinlenme durumundasınız."
-                )
+            st.subheader("🎭 Tahmin Edilen Duygu Durumu")
+            # En yüksek olasılıklı duyguyu göster
+            top_emotion = emotion_results[0]
+            st.info(f"**Dominant Duygu:** {top_emotion['label'].upper()} (Güven Oranı: %{top_emotion['score']*100:.1f})")
 
         except Exception as e:
-            st.error(f"Ses işlenirken bir hata oluştu: {e}")
+            st.error(f"Analiz sırasında bir hata oluştu: {e}")
             
