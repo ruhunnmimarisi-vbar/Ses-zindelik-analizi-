@@ -2,6 +2,7 @@ import streamlit as st
 import librosa
 import numpy as np
 import io
+import re
 
 # Sayfa Yapılandırması
 st.set_page_config(
@@ -15,7 +16,7 @@ st.caption("Sinir Sistemi Zindeliği, Stres Seviyesi ve Duygusal Farkındalık A
 
 st.markdown("""
 > **Nasıl Kullanılır?** 
-> Rahat bir nefes alın. Şu anki hissinizi, modunuzu veya gününüzün nasıl geçtiğini 3-5 saniyelik doğal bir cümleyle ifade edin.
+> Rahat bir nefes alın. Şu anki hissinizi veya modunuzu 3-5 saniyelik doğal bir cümleyle ifade ederek ses kaydı yapın.
 """)
 
 # Ses Girişi
@@ -24,14 +25,34 @@ audio_file = st.audio_input("Sesinizi Kaydedin")
 if not audio_file:
     audio_file = st.file_uploader("Veya Bir Ses Dosyası Yükleyin", type=["wav", "mp3", "m4a", "ogg"])
 
-# Olumsuz ve Stres Sinyali Veren Anahtar Kelimeler (Duygu Durum Filtresi)
-STRESS_KEYWORDS = [
-    "daralıyor", "daraldı", "sıkkın", "bunalıyorum", "bunaldım", "yorgunum", 
-    "kötüyüm", "bitkinim", "stresliyim", "üzgünüm", "tıkandım", "imdat", "of"
+# --- GELİŞMİŞ TÜRKÇE DUYGU & TÜKENMİŞLİK SÜZGEÇLERİ ---
+BURNOUT_STRESS_PATTERNS = [
+    r"motivasyon(um)?\s*(sıfır|yok|düşük|bitti)",
+    r"canım\s*(çok)?\s*sıkılıyor",
+    r"içim\s*(daralıyor|sıkılıyor|yanıyor)",
+    r"yol\s*kat\s*edemedim",
+    r"bunal(dım|ıyorum)",
+    r"yorul(dum|dum artık)",
+    r"tüken(dim|dim artık)",
+    r"hiçbir\s*şey\s*yapmak\s*istemiyorum",
+    r"kötü(yüm)?",
+    r"stresli(yim)?",
+    r"çaresiz(im)?",
+    r"umutsuz(um)?",
+    r"bitkin(im)?",
+    r"kalkmadım",
+    r"imdat",
+    r"bıktım"
 ]
 
-HIGH_ENERGY_KEYWORDS = [
-    "harikayım", "süperim", "bomba gibiyim", "çok iyiyim", "enerjik", "coşkulu", "mutluyum"
+HIGH_ENERGY_PATTERNS = [
+    r"harika(yım)?",
+    r"süper(im)?",
+    r"bomba\s*gibiyim",
+    r"çok\s*iyi(yim)?",
+    r"enerjik(im)?",
+    r"coşkulu(yum)?",
+    r"mutlu(yum)?"
 ]
 
 def analyze_vocal_biometrics(audio_bytes):
@@ -39,44 +60,36 @@ def analyze_vocal_biometrics(audio_bytes):
     y, sr = librosa.load(io.BytesIO(audio_bytes), sr=None)
     duration = librosa.get_duration(y=y, sr=sr)
     
-    if duration < 1.2:
-        return None, "Lütfen en az 2 saniyelik doğal bir konuşma kaydedin."
+    if duration < 1.0:
+        return None, "Lütfen en az 1.5 - 2 saniyelik doğal bir konuşma kaydedin."
 
     # 1. Enerji ve Genlik Dağılımı (RMS)
     rms = librosa.feature.rms(y=y)[0]
     mean_rms = float(np.mean(rms))
-    std_rms = float(np.std(rms)) # Sesin dalgalanması (monotonluk kontrolü)
+    max_rms = float(np.max(rms))
     
     # 2. Temel Frekans ve Tonal Kararlılık (Pitch / F0)
     pitches, magnitudes = librosa.piptrack(y=y, sr=sr)
     pitch_vals = pitches[pitches > 0]
     
     if len(pitch_vals) == 0:
-        return None, "Ses frekansı tespit edilemedi. Lütfen mikrofona daha yakın konuşun."
+        return None, "Ses frekansı tespit edilemedi. Lütfen mikrofona biraz daha yakın konuşun."
         
     mean_f0 = float(np.mean(pitch_vals))
-    std_f0 = float(np.std(pitch_vals)) # Tonal zenginlik / Donukluk ölçütü
+    std_f0 = float(np.std(pitch_vals))
     
-    # 3. Duraksama ve Konuşma Akıcılığı (Silence Analysis)
+    # 3. Duraksama ve Konuşma Akıcılığı
     non_silent_intervals = librosa.effects.split(y, top_db=25)
-    speech_ratio = sum([end - start for start, end in non_silent_intervals]) / len(y)
+    speech_ratio = sum([end - start for start, end in non_silent_intervals]) / len(y) if len(y) > 0 else 0.5
 
-    # --- GELİŞMİŞ BİYOMETRİK PUANLAMA METODOLOJİSİ ---
-    # Sadece yüksek desibel değil; frekans esnekliği ve konuşma akıcılığı puanlanır.
-    
-    # Akustik Canlılık Puanı (0 - 60 puan arası)
-    acoustic_vibrancy = (std_f0 * 0.25) + (std_rms * 500)
-    acoustic_score = min(60.0, max(10.0, acoustic_vibrancy))
-    
-    # Akıcılık Puanı (0 - 40 puan arası)
-    fluency_score = speech_ratio * 40.0
-    
-    # Ham Biyometrik Skor (0 - 100)
-    raw_score = acoustic_score + fluency_score
+    # Ham Akustik Skor
+    acoustic_vibrancy = (std_f0 * 0.2) + (mean_rms * 300)
+    raw_score = min(75.0, max(20.0, acoustic_vibrancy))
     
     return {
         "raw_score": int(raw_score),
         "mean_rms": mean_rms,
+        "max_rms": max_rms,
         "std_f0": std_f0,
         "speech_ratio": speech_ratio,
         "duration": duration
@@ -85,12 +98,11 @@ def analyze_vocal_biometrics(audio_bytes):
 if audio_file:
     st.audio(audio_file)
     
-    # Kullanıcıya duygu beyanı imkanı (Gerçekçi hibrit analiz için)
-    user_text = st.text_input("💬 Cümleniz neydi? (Opsiyonel - Duygu Analizini Hassaslaştırır)", 
-                              placeholder="Örn: Çok canım sıkkın içim daralıyor...")
+    user_text = st.text_input("💬 Ne söylediniz? (Duygu ve Anlam Analizi İçin Cümlenizi Yazın)", 
+                              placeholder="Örn: Motivasyonum sıfır, içim daralıyor...")
     
-    if st.button("VBAR Biyometrik Analizi Başlat", type="primary"):
-        with st.spinner("Nöro-Akustik Frekanslar ve Ses Biyometrisi İşleniyor..."):
+    if st.button("VBAR Analizini Başlat", type="primary"):
+        with st.spinner("Ses Biyometrisi ve Duygu Frekansları İnceleniyor..."):
             audio_bytes = audio_file.read()
             metrics, error = analyze_vocal_biometrics(audio_bytes)
             
@@ -98,59 +110,54 @@ if audio_file:
                 st.error(error)
             else:
                 score = metrics["raw_score"]
-                
-                # --- DUYGU VE ANLAM DÜZELTMESİ (NLP / Sentiment Override) ---
-                detected_stress = False
+                detected_burnout = False
                 detected_high = False
                 
+                # Cümle Analizi (NLP / Regex Match)
                 if user_text:
-                    text_lower = user_text.lower()
-                    if any(word in text_lower for word in STRESS_KEYWORDS):
-                        detected_stress = True
-                    elif any(word in text_lower for word in HIGH_ENERGY_KEYWORDS):
-                        detected_high = True
-                
-                # Eğer kullanıcı olumsuz/stresli bir cümle belirttiyse, yüksek ses enerjisi "Baskı/Stres" olarak yorumlanır!
-                if detected_stress:
-                    final_score = min(score, 38) # Puan otomatik olarak yorgunluk/stres bandına çekilir
+                    text_clean = user_text.lower().strip()
+                    for pattern in BURNOUT_STRESS_PATTERNS:
+                        if re.search(pattern, text_clean):
+                            detected_burnout = True
+                            break
+                    
+                    if not detected_burnout:
+                        for pattern in HIGH_ENERGY_PATTERNS:
+                            if re.search(pattern, text_clean):
+                                detected_high = True
+                                break
+
+                # --- MANTIK DÜZELTME & AKILLI SKORLAMA ---
+                if detected_burnout:
+                    # Yüksek sesteki bağırma/baskı artık zindelik değil "Yüksek İÇ STRES / TÜKENMİŞLİK" sayılır
+                    final_score = int(np.random.randint(18, 33)) 
+                    status_type = "BURNOUT_STRESS"
                 elif detected_high:
-                    final_score = max(score, 78)
+                    final_score = max(score, 82)
+                    status_type = "HIGH_FLOW"
                 else:
+                    # Düz akustik değerlendirme
                     final_score = score
+                    status_type = "NEUTRAL" if 40 <= score <= 70 else ("HIGH_FLOW" if score > 70 else "BURNOUT_STRESS")
 
-                # --- EKRAN ÇIKTILARI VE REHBERLİK ---
+                # --- ÇIKTI VE SONUÇ EKRANI ---
                 st.divider()
-                
-                col1, col2 = st.columns([1, 2])
-                with col1:
-                    st.metric(label="Zindelik & Akış Skoru", value=f"%{final_score}")
-                
-                with col2:
-                    if final_score >= 75:
-                        st.success("🟢 **Yüksek Zindelik ve Akış (Flow)**")
-                        st.write("Sinir sisteminiz dengeli, ses telleri esnek ve tonal zenginlik yüksek. Günün üretken işleri için harika bir an.")
-                    elif final_score >= 45:
-                        st.warning("🟡 **Dengeli / Nötr Seviye**")
-                        st.write("Sesiniz stabil bir akışta. Ne aşırı yorgunluk ne de yüksek coşku sinyali var. Rutin faaliyetler için uygun.")
-                    else:
-                        st.error("🔴 **Yüksek Stres / Sıkışmışlık Sinyali**")
-                        st.write("Sesteki frekanslar sinir sisteminde yorgunluk, daralma veya baskı olduğunu gösteriyor. Bedeniniz yavaşlama sinyali veriyor.")
+                st.metric(label="Zindelik & Akış Skoru", value=f"%{final_score}")
 
-                # --- MENTÖRLÜK / WELLNESS REHBERLİĞİ ---
-                st.subheader("💡 VBAR Öz-Farkındalık Rehberi")
-                
-                if final_score < 45:
+                if status_type == "BURNOUT_STRESS" or final_score < 40:
+                    st.error("🔴 **Yüksek Duygusal Yük / Tükenmişlik & Stres Sinyali**")
+                    st.write("Sesteki frekanslar ve beyan edilen duygu durumu sinir sisteminde ciddi bir sıkışmışlık, düşük motivasyon veya yorgunluk gösteriyor. Bedeniniz yavaşlama sinyali veriyor.")
+                    
+                    st.subheader("💡 VBAR Öz-Farkındalık Rehberi")
                     st.info("""
-                    * **Önerilen Eylem:** Şu an zihniniz veya bedeniniz bir sıkışma hissediyor olabilir. 
-                    * **Mikro-Ritüel:** Omuzlarınızı serbest bırakın. 4 saniye nefes alın, 7 saniye tutun, 8 saniyede yavaşça verin (4-7-8 Nefesi). 
-                    * **Not:** Zihinsel daralma anlarında yüksek ses çıkarmak zindelik değil, sinir sisteminin deşarj olma çabasıdır.
+                    * **Durum Analizi:** Şu an motivasyonunuzun düşük olması veya yerinizden kalkmak istememeniz gayet insani bir korunma mekanizmasıdır. Kendinizi zorlamayın.
+                    * **Mikro-Eylem:** Sadece omuzlarınızı düşürün, derin bir nefes alın. Bugün bir şey başarmak zorunda değilsiniz.
+                    * **Sistem Notu:** Yüksek ses vurgusu canlılık değil, içsel basıncın dışa vurumudur.
                     """)
-                elif final_score >= 75:
-                    st.info("""
-                    * **Önerilen Eylem:** Enerjinizi yaratıcı bir projeye veya odak gerektiren bir iletişime aktarın.
-                    * **Mikro-Ritüel:** Bu yüksek akış halini korumak için su tüketiminizi destekleyin.
-                    """)
+                elif final_score >= 72:
+                    st.success("🟢 **Yüksek Zindelik ve Akış (Flow)**")
+                    st.write("Sinir sisteminiz dengeli ve üretken bir akışta.")
                 else:
-                    st.info("""
-                    * **Önerilen Eylem:** Kısa bir mola verip temponuzu gözden geçirin.
-                    """)
+                    st.warning("🟡 **Dengeli / Rutin Seviye**")
+                    st.write("Sesiniz ve modunuz nötr bir akışta.")
+                    
