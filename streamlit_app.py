@@ -131,7 +131,37 @@ with tab1:
     mic_input = st.audio_input("Konuş ve kaydet")
     if mic_input is not None:
         audio_bytes = mic_input.read()
+import streamlit as st
+import librosa
+import io
 
+st.title("Ses Zindelik Analizi")
+st.warning("⚠️ Bu bir tedavi/klinik teşhis aracı değildir. Sonuçları yalnızca kendini gözlemleme amaçlanmaktadır.")
+
+# 1. MİKROFON İLE DOĞRUDAN KAYIT (YENİ EKLENEN KISIM)
+audio_value = st.audio_input("Sesinizi kaydetmek için mikrofona dokunun")
+
+# 2. DOSYA YÜKLEME
+uploaded_file = st.file_uploader("Veya ses dosyası yükleyin", type=["wav", "mp3", "m4a", "3ga", "ogg", "flac"])
+
+# Hangisi doluysa onu hedef ses yapıyoruz
+target_audio = audio_value or uploaded_file
+
+if target_audio is not None:
+    if st.button("Analiz Et", type="primary"):
+        try:
+            # Sesi arka planda okuma
+            audio_bytes = target_audio.read()
+            y, sr = librosa.load(io.BytesIO(audio_bytes), sr=None)
+            
+            # -------------------------------------------------------------
+            # BURADAN SONRASI SİZİN MEVCUT KODLARINIZ OLMALI:
+            # (Frekans hesaplamaları, zindelik skorları, grafikler vb.)
+            # -------------------------------------------------------------
+            
+        except Exception as e:
+            st.error(f"Ses işlenirken bir hata oluştu: {e}")
+            
 with tab2:
     uploaded_file = st.file_uploader("Ses dosyası seç (wav, mp3, m4a...)", type=None)
     if uploaded_file is not None:
