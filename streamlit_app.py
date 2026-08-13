@@ -15,7 +15,7 @@ st.warning("⚠️ Bu bir tedavi/klinik teşhis aracı değildir. Sonuçlar yaln
 
 # --- HAFIZA TANIMLAMALARI ---
 if "profiles" not in st.session_state:
-    st.session_state.profiles = {}  # Farklı modlar burada saklanacak (Zinde, Bıkkın vb.)
+    st.session_state.profiles = {}
 
 if "current_card" not in st.session_state:
     st.session_state.current_card = None
@@ -28,9 +28,6 @@ if "card_flipped" not in st.session_state:
 # 2. GEMINI CANLI NIYET KARTI ÜRETICISI
 # ==========================================
 def generate_dynamic_card(stone_mode, stone_name, hz_val, jitter_val, status_text):
-    """
-    Kullanıcının anlık ses parametrelerine göre Gemini'ye canlı olumlama ve niyet kartı yazdırır.
-    """
     try:
         api_key = st.secrets.get("GEMINI_API_KEY", "")
         if api_key:
@@ -60,7 +57,7 @@ def generate_dynamic_card(stone_mode, stone_name, hz_val, jitter_val, status_tex
     except Exception:
         pass
     
-    # Yedek Kartlar (API olmaması veya hata durumunda)
+    # Yedek Kartlar (API erişimi olmaması veya hata durumunda)
     fallback_cards = {
         "aquamarine": {
             "title": "İkna ve İfade Akışı",
@@ -128,7 +125,6 @@ with tab2:
                     pitch_diffs = np.abs(np.diff(pitch_vals)) if len(pitch_vals) > 1 else [0]
                     jitter_base = float(np.mean(pitch_diffs) / (pitch_base + 1e-6))
                     
-                    # Profili kaydet
                     st.session_state.profiles[mod_secimi] = {
                         "rms": rms_base,
                         "pitch": pitch_base,
@@ -161,6 +157,7 @@ with tab1:
                     audio_bytes = target_audio.read()
                     y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
                     
+                    # 1. Biyometrik Hesaplamalar
                     rms_val = float(np.mean(librosa.feature.rms(y=y)))
                     pitches, _ = librosa.piptrack(y=y, sr=sr)
                     pitch_vals = pitches[pitches > 0]
@@ -169,14 +166,15 @@ with tab1:
                     pitch_diffs = np.abs(np.diff(pitch_vals)) if len(pitch_vals) > 1 else [0]
                     jitter_val = float(np.mean(pitch_diffs) / (mean_pitch + 1e-6))
                 
-                # Kristal Taş ve Mod Analizi Mantığı
-                if jitter_val > 0.025:
+                # 2. Hassaslaştırılmış Taş Eşleşme Mantığı
+                if jitter_val > 0.022:
                     stone_mode = "obsidian"
                     stone_name = "Obsidyen"
                     stone_color = "#E74C3C"
                     stone_icon = "🔴"
                     status_text = "Gergin / Reaktif Mod"
-                elif rms_val < 0.02 or (mean_pitch > 0 and mean_pitch < 130):
+                elif rms_val < 0.040 or (0 < mean_pitch < 165):
+                    # Gece yorgunluğunu ve kısık ses tonunu yakalayan Oniks modu
                     stone_mode = "onyx"
                     stone_name = "Oniks & Hematit"
                     stone_color = "#7F8C8D"
@@ -206,13 +204,13 @@ with tab1:
             except Exception as e:
                 st.error(f"Analiz hatası: {e}")
 
-    # Analiz Sonuçlarının ve Niyet Kartının Gösterilmesi
+    # Analiz Sonuçları Ekranı ve Canlı Kart
     if "analysis_results" in st.session_state:
         res = st.session_state.analysis_results
         
         st.markdown("---")
         
-        # PROFİL EŞLEŞTİRME VURGUSU
+        # Karşılaştırma Notu
         if "😫 Bıkkın / Zihinsel Yorgun Mod" in st.session_state.profiles:
             bikkin_ref = st.session_state.profiles["😫 Bıkkın / Zihinsel Yorgun Mod"]
             jitter_fark = abs(res["jitter"] - bikkin_ref["jitter"])
@@ -226,7 +224,7 @@ with tab1:
             else:
                 st.info("💡 Sesiniz bıkkınlık profilinizden farklılık gösteriyor.")
 
-        # Metrikler
+        # Metrik Kutuları
         col1, col2, col3 = st.columns(3)
         col1.metric("Ort. Frekans (Pitch)", f"{res['pitch']:.1f} Hz")
         col2.metric("Mikro-Titreşim (Jitter)", f"{res['jitter']:.4f}")
@@ -235,7 +233,7 @@ with tab1:
         st.subheader(f"{res['stone_icon']} Biyometrik Taş Eşleşmesi: **{res['stone_name']}**")
         st.caption(f"Sinir Sistemi Durumu: **{res['status_text']}**")
         
-        # CANLI KART BÖLÜMÜ
+        # CANLI KART AÇMA BUTONU VE KART KUTUSU
         if not st.session_state.card_flipped:
             if st.button(f"🔮 {res['stone_name']} Niyet Kartını Üret ve Aç", use_container_width=True, type="primary"):
                 with st.spinner("Gemini ses biyometrinizi analiz edip niyet kartınızı hazırlıyor..."):
@@ -287,36 +285,4 @@ with tab1:
                     st.session_state.card_flipped = False
                     st.session_state.current_card = None
                     st.rerun()
-                # --- HASSASLAŞTIRILMIŞ BİYOMETRİK DÜZELTME ---
-# 1. Dip gürültüleri temizle
-y, _ = librosa.effects.trim(y, top_db=20)
-
-rms_val = float(np.mean(librosa.feature.rms(y=y)))
-pitches, _ = librosa.piptrack(y=y, sr=sr)
-pitch_vals = pitches[pitches > 0]
-mean_pitch = float(np.mean(pitch_vals)) if len(pitch_vals) > 0 else 0.0
-
-pitch_diffs = np.abs(np.diff(pitch_vals)) if len(pitch_vals) > 1 else [0]
-jitter_val = float(np.mean(pitch_diffs) / (mean_pitch + 1e-6))
-
-# 2. Yenilenen Taş Eşleşme Mantığı
-if jitter_val > 0.018:
-    stone_mode = "obsidian"
-    stone_name = "Obsidyen"
-    stone_color = "#E74C3C"
-    stone_icon = "🔴"
-    status_text = "Gergin / Reaktif Mod"
-elif rms_val < 0.035 or (0 < mean_pitch < 160):
-    # Gece ve yorgunluk anlarında Oniks'e geçiş artık daha hassas
-    stone_mode = "onyx"
-    stone_name = "Oniks & Hematit"
-    stone_color = "#7F8C8D"
-    stone_icon = "🖤"
-    status_text = "Dinlenme / Topraklanma Modu"
-else:
-    stone_mode = "aquamarine"
-    stone_name = "Akuamarin"
-    stone_color = "#1ABC9C"
-    stone_icon = "🩵"
-    status_text = "Zinde / İfade Modu"
-                
+                            
