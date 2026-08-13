@@ -130,7 +130,27 @@ audio_bytes = None
 with tab1:
     mic_input = st.audio_input("Konuş ve kaydet")
     if mic_input is not None:
-        audio_bytes = mic_input.read()
+        audio_bytes = mic_input.read()# ... (Üst kısımlar aynı)
+
+# Ses kayıt alanı
+audio_value = st.audio_input("Sesinizi kaydetmek için mikrofona dokunun ve kayıt bitince 'Durdur'a basın")
+
+if audio_value:
+    st.info("Kayıt başarıyla alındı. Şimdi 'Analiz Et' butonuna basabilirsiniz.")
+    
+    # Sadece kayıt alındığında analiz butonunu gösterelim
+    if st.button("Analiz Et", type="primary"):
+        try:
+            # İşleme kısmı
+            audio_bytes = audio_value.read()
+            y, sr = librosa.load(io.BytesIO(audio_bytes), sr=None)
+            
+            st.success("Ses başarıyla işlendi!")
+            # ... (Buraya mevcut analiz kodlarınızı yazın)
+            
+        except Exception as e:
+            st.error(f"Hata: {e}")
+
 import streamlit as st
 import librosa
 import io
