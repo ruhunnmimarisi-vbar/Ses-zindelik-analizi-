@@ -287,4 +287,36 @@ with tab1:
                     st.session_state.card_flipped = False
                     st.session_state.current_card = None
                     st.rerun()
+                # --- HASSASLAŞTIRILMIŞ BİYOMETRİK DÜZELTME ---
+# 1. Dip gürültüleri temizle
+y, _ = librosa.effects.trim(y, top_db=20)
+
+rms_val = float(np.mean(librosa.feature.rms(y=y)))
+pitches, _ = librosa.piptrack(y=y, sr=sr)
+pitch_vals = pitches[pitches > 0]
+mean_pitch = float(np.mean(pitch_vals)) if len(pitch_vals) > 0 else 0.0
+
+pitch_diffs = np.abs(np.diff(pitch_vals)) if len(pitch_vals) > 1 else [0]
+jitter_val = float(np.mean(pitch_diffs) / (mean_pitch + 1e-6))
+
+# 2. Yenilenen Taş Eşleşme Mantığı
+if jitter_val > 0.018:
+    stone_mode = "obsidian"
+    stone_name = "Obsidyen"
+    stone_color = "#E74C3C"
+    stone_icon = "🔴"
+    status_text = "Gergin / Reaktif Mod"
+elif rms_val < 0.035 or (0 < mean_pitch < 160):
+    # Gece ve yorgunluk anlarında Oniks'e geçiş artık daha hassas
+    stone_mode = "onyx"
+    stone_name = "Oniks & Hematit"
+    stone_color = "#7F8C8D"
+    stone_icon = "🖤"
+    status_text = "Dinlenme / Topraklanma Modu"
+else:
+    stone_mode = "aquamarine"
+    stone_name = "Akuamarin"
+    stone_color = "#1ABC9C"
+    stone_icon = "🩵"
+    status_text = "Zinde / İfade Modu"
                 
