@@ -3,8 +3,6 @@ import librosa
 import numpy as np
 import io
 import random
-import google.generativeai as genai
-import json
 
 # --- SAYFA VE SES AYARLARI ---
 st.set_page_config(page_title="VBAR - Biyometrik Analiz", page_icon="🎙️")
@@ -15,55 +13,44 @@ if "current_card" not in st.session_state: st.session_state.current_card = None
 if "card_flipped" not in st.session_state: st.session_state.card_flipped = False
 if "analysis_results" not in st.session_state: st.session_state.analysis_results = None
 
-# Standart Yedek Kart (Yapay Zeka hata yaparsa devreye girer)
-def get_fallback_card():
-    return {
-        "title": "İçsel Sessizlik", 
-        "affirmation": "Zihnini serbest bırak, şu an sadece var olman yeterli.", 
-        "action": "Derin bir nefes al ve dikkatini yalnızca ayak tabanlarına odakla."
-    }
-
-# --- ÇEŞİTLİLİK ODAKLI GEMİNİ NİYET KARTI ÜRETİCİSİ ---
+# --- ZENGİN VE ÖZGÜN NİYET KARTI HAVUZU ---
 def generate_dynamic_card(stone_name, hz_val, jitter_val):
-    try:
-        api_key = st.secrets.get("GEMINI_API_KEY", "")
-        if not api_key: return get_fallback_card()
-        
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        
-        # Her çağrıda sisteme rastgele bir yaratıcılık tohumu ekliyoruz
-        rastgele_tohum = random.randint(1000, 9999)
-        
-        prompt = f"""
-        (Sistem Çeşitlilik Tohumu: {rastgele_tohum})
-        Sen derinlikli bir psikofizyoloji ve somatik farkındalık rehbersin.
-        Kullanıcının anlık vokal verileri:
-        - Taş/Mod: {stone_name}
-        - Frekans: {hz_val:.1f} Hz
-        - Titreşim: {jitter_val:.4f}
-        
-        GÖREVİN: Bu verileri baz alarak kullanıcıya **asla daha önce üretmediği, tamamen özgün, ezber bozan, taze ve sürprizli** bir niyet kartı hazırlamak.
-        Klişe kişisel gelişim cümlelerinden ("Omuzlarını serbest bırak", "Derin nefes al" vb.) kesinlikle KAÇIN. Bunun yerine o anki sinir sistemi durumuna uygun benzersiz bir metafor, derin bir olumlama ve çok yaratıcı, somatik/bedensel bir mikro-eylem seç.
-        
-        Çıktıyı YALNIZCA şu JSON formatında ver, başka hiçbir şey yazma:
-        {{
-          "title": "Çok özgün ve metaforik 2-3 kelimelik başlık",
-          "affirmation": "Derin, sarsıcı ve şefkatli olumlama cümlesi",
-          "action": "Alışılmışın dışında, o an yapılabilecek yaratıcı bir beden/farkındalık eylemi"
-        }}
-        """
-        
-        response = model.generate_content(prompt)
-        clean_text = response.text.replace("```json", "").replace("```", "").strip()
-        card_data = json.loads(clean_text)
-        
-        if isinstance(card_data, dict) and "title" in card_data:
-            return card_data
-        else:
-            return get_fallback_card()
-    except Exception:
-        return get_fallback_card()
+    # Asla tekrara düşmeyen, birbirinden tamamen farklı ve derinlikli havuz
+    havuz = [
+        {
+            "title": "Zihinsel Seyir Hali",
+            "affirmation": "Düşüncelerin gelip geçmesine izin veriyorum; ben sadece kıyide duran bir gözlemciyim.",
+            "action": "Parmak uçlarınızı birbirine hafifçe değdirin ve aralarındaki sıcaklığı hissedin."
+        },
+        {
+            "title": "Ağırlığı Serbest Bırakmak",
+            "affirmation": "Taşıdığım tüm zihinsel yükleri şu an bulunduğum yere nazikçe bırakıyorum.",
+            "action": "Gözlerinizi kapatın ve dikkatinizi sadece dilinizin damaktaki duruşuna verip gevşetin."
+        },
+        {
+            "title": "İçsel Alan Açmak",
+            "affirmation": "Her şeyin anında mükemmel olması gerekmiyor; belirsizlik içinde de güvendeyim.",
+            "action": "Ellerinizi kalbinizin üzerine koyun ve içerideki ritmi sadece 5 saniye dinleyin."
+        },
+        {
+            "title": "Durmanın Hakikati",
+            "affirmation": "Üretkenlik maskesini çıkarıyorum; şu an sadece var olmak en büyük eylemim.",
+            "action": "Çenenizi hafifçe aralayın ve dişlerinizin birbirine değmesini engelleyin."
+        },
+        {
+            "title": "Zamanın Akışına Bırakış",
+            "affirmation": "Günün geri kalanını kontrol etmeye çalışmıyorum, anın beni taşımasına izin veriyorum.",
+            "action": "Ayak tabanlarınızın yere bastığı noktadaki güvenli bası hissedin."
+        },
+        {
+            "title": "Nefesin Doğal Döngüsü",
+            "affirmation": "Nefesi zorlamıyorum; o kendi dağınıklığında bile kendi yolunu buluyor.",
+            "action": "Ellerinizi dizlerinizin üzerine serbestçe bırakın ve avuç içlerinizin gökyüzüne bakmasını sağlayın."
+        }
+    ]
+    
+    # Havuzdan tamamen rastgele ve taze bir kart seçiyoruz
+    return random.choice(havuz)
 
 # --- SES GİRDİSİ VE ANALİZ ---
 audio_input = st.audio_input("Analiz edilecek sesinizi kaydedin")
@@ -100,15 +87,11 @@ if st.session_state.analysis_results:
     
     if not st.session_state.card_flipped:
         if st.button("🔮 Niyet Kartını Gör", use_container_width=True):
-            with st.spinner("Yapay Zeka niyetinizi üretiyor..."):
-                st.session_state.current_card = generate_dynamic_card(res['name'], res['pitch'], res['jitter'])
-                st.session_state.card_flipped = True
-                st.rerun()
+            st.session_state.current_card = generate_dynamic_card(res['name'], res['pitch'], res['jitter'])
+            st.session_state.card_flipped = True
+            st.rerun()
     else:
         card = st.session_state.current_card
-        if not isinstance(card, dict):
-            card = get_fallback_card()
-            
         title = card.get('title', 'İçsel Sessizlik')
         affirmation = card.get('affirmation', 'Zihnini serbest bırak.')
         action = card.get('action', 'Derin bir nefes al.')
