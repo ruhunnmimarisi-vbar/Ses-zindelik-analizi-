@@ -2,6 +2,7 @@ import streamlit as st
 import librosa
 import numpy as np
 import io
+import torch  # Eksik olan torch kütüphanesi eklendi
 
 # 1. Hugging Face Modeli (Transformers)
 from transformers import pipeline
@@ -57,4 +58,3 @@ if target_audio is not None:
 
         except Exception as e:
             st.error(f"Analiz sırasında bir hata oluştu: {e}")
-            
