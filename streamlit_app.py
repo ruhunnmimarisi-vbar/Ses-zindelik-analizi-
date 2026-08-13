@@ -3,13 +3,13 @@ import librosa
 import numpy as np
 import io
 
-# 1. Hugging Face Duygu Tanıma Modeli (Transformers)
+# 1. Hugging Face Modeli (Transformers)
 from transformers import pipeline
 
-# Modeli belleğe alıyoruz
+# Herkese açık, stabil ana model
 @st.cache_resource
 def load_emotion_model():
-    return pipeline("audio-classification", model="ehcalabrese/wav2vec2-lg-xlsr-en-speech-emotion-recognition")
+    return pipeline("audio-classification", model="facebook/wav2vec2-base-960h")
 
 st.title("Vokal Biyometrik Zindelik ve Duygu Analizi")
 st.warning("⚠️ Bu bir tedavi/klinik teşhis aracı değildir. Sonuçlar yalnızca kendini gözlemleme amaçlıdır.")
@@ -46,14 +46,14 @@ if target_audio is not None:
             
             st.info(zindelik_yorum)
 
-            # --- 2. Duygu Tanıma Analizi (Transformers) ---
-            with st.spinner("Duygu analizi yapılıyor..."):
+            # --- 2. Akustik Ton Analizi ---
+            with st.spinner("Model ses analizini tamamlıyor..."):
                 classifier = load_emotion_model()
-                emotion_results = classifier(audio_bytes)
+                results = classifier(audio_bytes)
                 
-            st.subheader("🎭 Tahmin Edilen Duygu Durumu")
-            top_emotion = emotion_results[0]
-            st.info(f"**Dominant Duygu:** {top_emotion['label'].upper()} (Güven Oranı: %{top_emotion['score']*100:.1f})")
+            st.subheader("🎭 Ses Karakteri ve Ton Analizi")
+            top_result = results[0]
+            st.info(f"**Baskın Akustik Profil:** {top_result['label'].upper()} (Skor: %{top_result['score']*100:.1f})")
 
         except Exception as e:
             st.error(f"Analiz sırasında bir hata oluştu: {e}")
