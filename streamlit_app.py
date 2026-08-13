@@ -2,10 +2,11 @@ import streamlit as st
 import librosa
 import numpy as np
 import io
+import random
 import google.generativeai as genai
 import json
 
-# --- SAYFA AYARLARI ---
+# --- SAYFA VE SES AYARLARI ---
 st.set_page_config(page_title="VBAR - Biyometrik Analiz", page_icon="🎙️")
 st.title("🎙️ VBAR - Kişiselleştirilmiş Ses Profil Analizi")
 
@@ -17,12 +18,12 @@ if "analysis_results" not in st.session_state: st.session_state.analysis_results
 # Standart Yedek Kart (Yapay Zeka hata yaparsa devreye girer)
 def get_fallback_card():
     return {
-        "title": "Denge Merkezi", 
-        "affirmation": "Şu an güvendesin ve her şey yolunda.", 
-        "action": "Derin bir nefes al ve omuzlarını serbest bırak."
+        "title": "İçsel Sessizlik", 
+        "affirmation": "Zihnini serbest bırak, şu an sadece var olman yeterli.", 
+        "action": "Derin bir nefes al ve dikkatini yalnızca ayak tabanlarına odakla."
     }
 
-# --- GEMINI NİYET KARTI ÜRETİCİSİ ---
+# --- ÇEŞİTLİLİK ODAKLI GEMİNİ NİYET KARTI ÜRETİCİSİ ---
 def generate_dynamic_card(stone_name, hz_val, jitter_val):
     try:
         api_key = st.secrets.get("GEMINI_API_KEY", "")
@@ -30,27 +31,45 @@ def generate_dynamic_card(stone_name, hz_val, jitter_val):
         
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel('gemini-1.5-flash')
-        prompt = f"Taş: {stone_name}, Frekans: {hz_val:.1f}Hz. JSON formatında (title, affirmation, action anahtarlarıyla) niyet üret. Sadece JSON ver."
-        response = model.generate_content(prompt)
         
-        # Gelen veriyi temizle ve çevir
+        # Her çağrıda sisteme rastgele bir yaratıcılık tohumu ekliyoruz
+        rastgele_tohum = random.randint(1000, 9999)
+        
+        prompt = f"""
+        (Sistem Çeşitlilik Tohumu: {rastgele_tohum})
+        Sen derinlikli bir psikofizyoloji ve somatik farkındalık rehbersin.
+        Kullanıcının anlık vokal verileri:
+        - Taş/Mod: {stone_name}
+        - Frekans: {hz_val:.1f} Hz
+        - Titreşim: {jitter_val:.4f}
+        
+        GÖREVİN: Bu verileri baz alarak kullanıcıya **asla daha önce üretmediği, tamamen özgün, ezber bozan, taze ve sürprizli** bir niyet kartı hazırlamak.
+        Klişe kişisel gelişim cümlelerinden ("Omuzlarını serbest bırak", "Derin nefes al" vb.) kesinlikle KAÇIN. Bunun yerine o anki sinir sistemi durumuna uygun benzersiz bir metafor, derin bir olumlama ve çok yaratıcı, somatik/bedensel bir mikro-eylem seç.
+        
+        Çıktıyı YALNIZCA şu JSON formatında ver, başka hiçbir şey yazma:
+        {{
+          "title": "Çok özgün ve metaforik 2-3 kelimelik başlık",
+          "affirmation": "Derin, sarsıcı ve şefkatli olumlama cümlesi",
+          "action": "Alışılmışın dışında, o an yapılabilecek yaratıcı bir beden/farkındalık eylemi"
+        }}
+        """
+        
+        response = model.generate_content(prompt)
         clean_text = response.text.replace("```json", "").replace("```", "").strip()
         card_data = json.loads(clean_text)
         
-        # Gelen veri GEÇERLİ bir sözlük (dict) ise kullan, değilse yedeği ver
         if isinstance(card_data, dict) and "title" in card_data:
             return card_data
         else:
             return get_fallback_card()
     except Exception:
-        return get_fallback_card() # Hata durumunda asla çökme, yedeği dön
+        return get_fallback_card()
 
 # --- SES GİRDİSİ VE ANALİZ ---
 audio_input = st.audio_input("Analiz edilecek sesinizi kaydedin")
 
 if audio_input:
     if st.button("🔍 Biyometrik Analizi Başlat", type="primary", use_container_width=True):
-        # Yeni analize başlarken eski sonuçları temizle
         st.session_state.analysis_results = None
         st.session_state.card_flipped = False
         
@@ -59,7 +78,7 @@ if audio_input:
             rms = float(np.mean(librosa.feature.rms(y=y)))
             pitches, _ = librosa.piptrack(y=y, sr=sr)
             mean_pitch = float(np.mean(pitches[pitches > 0])) if len(pitches[pitches > 0]) > 0 else 150.0
-            jitter = 0.02 # Örnek hesaplama
+            jitter = 0.02 
 
             # Taş Mantığı
             if rms < 0.04: mode, name, col, icon = "onyx", "Oniks & Hematit", "#7F8C8D", "🖤"
@@ -68,7 +87,7 @@ if audio_input:
             st.session_state.analysis_results = {"rms": rms, "pitch": mean_pitch, "jitter": jitter, "name": name, "col": col, "icon": icon}
             st.rerun()
 
-# --- SONUÇLAR VE METRİKLER (EKRANDA GÖSTERİM) ---
+# --- SONUÇLAR VE METRİKLER ---
 if st.session_state.analysis_results:
     res = st.session_state.analysis_results
     
@@ -79,7 +98,6 @@ if st.session_state.analysis_results:
     
     st.markdown(f"### {res['icon']} Eşleşme: **{res['name']}**")
     
-    # Kart Butonu
     if not st.session_state.card_flipped:
         if st.button("🔮 Niyet Kartını Gör", use_container_width=True):
             with st.spinner("Yapay Zeka niyetinizi üretiyor..."):
@@ -87,13 +105,12 @@ if st.session_state.analysis_results:
                 st.session_state.card_flipped = True
                 st.rerun()
     else:
-        # TİP HATASI (TYPEERROR) ÖNLEME KATMANI
         card = st.session_state.current_card
         if not isinstance(card, dict):
             card = get_fallback_card()
             
-        title = card.get('title', 'Denge Merkezi')
-        affirmation = card.get('affirmation', 'Şu an güvendesin.')
+        title = card.get('title', 'İçsel Sessizlik')
+        affirmation = card.get('affirmation', 'Zihnini serbest bırak.')
         action = card.get('action', 'Derin bir nefes al.')
 
         st.markdown(f"""
