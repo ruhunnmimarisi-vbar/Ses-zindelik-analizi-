@@ -1,5 +1,6 @@
 import streamlit as st
 import librosa
+import numpy as np
 import io
 
 # 1. Hugging Face Duygu Tanıma Modeli (Transformers)
@@ -24,21 +25,33 @@ if target_audio is not None:
         try:
             audio_bytes = target_audio.read()
             
-            # --- 1. Temel Akustik Analiz (Zindelik & Genlik) ---
+            # --- 1. Akustik ve Zindelik Analizi ---
             y, sr = librosa.load(io.BytesIO(audio_bytes), sr=None)
-            duration = librosa.get_duration(y=y, sr=sr)
             
-            st.success("Ses başarıyla işlendi!")
-            st.write(f"⏱️ **Ses Süresi:** {duration:.2f} saniye")
+            # Ses Enerjisi (RMS / Genlik)
+            rms_val = float(np.mean(librosa.feature.rms(y=y)))
+            # MFCC
+            mfcc_val = float(np.mean(librosa.feature.mfcc(y=y, sr=sr)))
+            
+            st.success("Ses başarıyla analiz edildi!")
+            
+            st.write(f"**Ses Enerjisi (Genlik):** {rms_val:.4f}")
+            st.write(f"**Mel-Frekans Katsayısı (MFCC Ort.):** {mfcc_val:.2f}")
+            
+            # Zindelik Değerlendirmesi
+            if rms_val < 0.005:
+                zindelik_yorum = "💡 **Anlık Zindelik Yorumu:** Parasempatik Sinir Sistemi Baskın (Sakin/Düşük Enerji): Ses tonunuz dingin veya hafif bir fizyolojik yorgunluk işaret ediyor. Rölanti veya dinlenme durumundasınız."
+            else:
+                zindelik_yorum = "💡 **Anlık Zindelik Yorumu:** Sempatik Sinir Sistemi Baskın (Canlı/Yüksek Enerji): Sesinizde aktif, dinamik ve yüksek enerjili bir ses kullanımı tespit edildi."
+            
+            st.info(zindelik_yorum)
 
             # --- 2. Duygu Tanıma Analizi (Transformers) ---
             with st.spinner("Duygu analizi yapılıyor..."):
                 classifier = load_emotion_model()
-                # Duygu tahminini çalıştırıyoruz
                 emotion_results = classifier(audio_bytes)
                 
             st.subheader("🎭 Tahmin Edilen Duygu Durumu")
-            # En yüksek olasılıklı duyguyu göster
             top_emotion = emotion_results[0]
             st.info(f"**Dominant Duygu:** {top_emotion['label'].upper()} (Güven Oranı: %{top_emotion['score']*100:.1f})")
 
