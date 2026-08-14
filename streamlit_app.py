@@ -60,35 +60,40 @@ with st.expander("✨ VBAR Nedir? Nasıl Çalışır ve Size Ne Sunar?", expande
 
 st.divider()
 
-# --- 7 ÇAKRA VE TAŞ PROFİLİ SİSTEMİ ---
+# --- 7 ÇAKRA VE TAŞ PROFİLİ SİSTEMİ (DİNAMİK ORANTISAL DAĞILIM) ---
 def get_chakra_profile(rms, pitch):
-    if pitch < 110 or rms < 0.015:
+    # Ses ne kadar yüksek çıkarsa çıksın (1500 Hz dahil), 
+    # ses tonunuzun spektral dağılımına göre 7 çakraya adil bir şekilde paylaştırıyoruz.
+    # Pitch değerini normal bir aralığa (0 - 700 arası) endeksliyoruz.
+    normalized_pitch = min(max(pitch, 80.0), 800.0)
+    
+    if normalized_pitch < 180:
         return "Kök Çakra (Muladhara)", "🔴", "Kırmızı Akik", "#C0392B", "Dünya ile bağ, fiziksel güven, köklenme ve aidiyetin merkezidir."
-    elif pitch < 160:
+    elif normalized_pitch < 270:
         return "Sakral Çakra (Svadhisthana)", "🟠", "Kaplan Gözü", "#E67E22", "Duygu akışı, yaratım enerjisi ve yaşam coşkusunun merkezidir."
-    elif pitch < 220:
+    elif normalized_pitch < 360:
         return "Solar Pleksus (Manipura)", "🟡", "Kehribar", "#F1C40F", "Özdeğer, irade, özgüven ve bireysel gücün merkezidir."
-    elif pitch < 300:
+    elif normalized_pitch < 450:
         return "Kalp Çakra (Anahata)", "🟢", "Yeşim", "#27AE60", "Koşulsuz sevgi, şefkat, merhamet ve içsel dengenin merkezidir."
-    elif pitch < 420:
+    elif normalized_pitch < 540:
         return "Boğaz Çakra (Vishuddha)", "🩵", "Akuamarin", "#1ABC9C", "Hakikat, ilahi ifade, sesin özgürce ve dürüstçe akışının merkezidir."
-    elif pitch < 750:
+    elif normalized_pitch < 650:
         return "Üçüncü Göz Çakra (Ajna)", "🔵", "Lapis Lazuli", "#2980B9", "Sezgi, içsel bilgelik, ötesini görebilme ve idrakin merkezidir."
     else:
-        return "Üçüncü Göz Çakra (Ajna)", "🔵", "Lapis Lazuli", "#2980B9", "Sezgi, içsel bilgelik, ötesini görebilme ve idrakin merkezidir."
+        return "Tepe Çakra (Sahasrara)", "🟣", "Ametist", "#8E44AD", "İlahi olanla bağ, saf bilinç, evrensel birlik ve Hakikat ile bütünleşme merkezidir."
 
 # --- NİYET KARTI HAVUZU ---
 def generate_dynamic_card(chakra_name, stone_name):
     havuz = [
         {
-            "title": "İçsel Bilgelik ve Vizyon",
-            "affirmation": "Zihnimin berraklığıyla geleceği görüyor, attığım her adımda sezgilerime güveniyorum.",
-            "action": "İki kaşınızın ortasındaki odak noktasına hafifçe dokunarak derin bir nefes alın."
+            "title": "İlahi Akış ve Coşku",
+            "affirmation": "İçimdeki büyük vizyon ve coşku, evrenin kusursuz ritmiyle mükemmel bir uyum içinde akıyor.",
+            "action": "Derin bir nefes alarak kalbinizdeki o büyük heyecanın bedeninizde yayılmasına izin verin."
         },
         {
-            "title": "Netlik ve Odak",
-            "affirmation": "Yaratıcı gücüm ve sezgilerim hayatımın her alanında kusursuz bir uyumla akıyor.",
-            "action": "Gözlerinizi kapatın ve hayalini kurduğunuz o büyük vizyonun netliğini hissedin."
+            "title": "Bolluk ve Özgür İfade",
+            "affirmation": "Yaratıcı enerjim ve sesim, hayatıma dilediğim bolluğu ve bereketi çekiyor.",
+            "action": "Gözlerinizi kapatın ve hayalini kurduğunuz o geniş kitlelerin enerjisini hissedin."
         }
     ]
     return random.choice(havuz)
@@ -124,14 +129,14 @@ if audio_input:
                     - Eşleşen Çakra: {chakra_name} ({stone_name})
 
                     GÖREVİN:
-                    Asla "Sesiniz şu çakra ile rezonans gösterdi" gibi mekanik veya tekrar eden bir cümle KURMA. Doğrudan bu frekansın zihinsel ve sezgisel boyuttaki derin anlamını, vizyoner gücünü şiirsel ve ilham verici bir dille anlat. Ardından kullanıcının bu enerjiyi hayatına geçirmesi için ilham verici derin bir perspektif sun ve bireysel seanslar için Ruhunnmimarisi@gmail.com adresini nazikçe hatırlat.
+                    Mekanik hiçbir tekrar cümle kurma. Doğrudan bu çakranın ruhsal ve enerjik yansımasını, kişinin içsel potansiyelini ve coşkusunu şiirsel bir dille yorumla. Bireysel seanslar için Ruhunnmimarisi@gmail.com adresini nazikçe hatırlat.
                     """
                     response = model.generate_content(prompt)
                     ai_comment = response.text
                 except Exception:
-                    ai_comment = f"Bu özel frekans, zihninizin ve sezgilerinizin en saf potansiyelini gözler önüne seriyor."
+                    ai_comment = f"Sesinizin taşıdığı bu yüksek coşku ve frekans, enerjinizin ne kadar güçlü ve akışta olduğunu gösteriyor."
             else:
-                ai_comment = f"Bu özel frekans, zihninizin ve sezgilerinizin en saf potansiyelini gözler önüne seriyor."
+                ai_comment = f"Sesinizin taşıdığı bu yüksek coşku ve frekans, enerjinizin ne kadar güçlü ve akışta olduğunu gösteriyor."
 
             st.session_state.analysis_results = {
                 "rms": rms, "pitch": mean_pitch, "chakra": chakra_name, "stone": stone_name,
@@ -184,4 +189,3 @@ if st.session_state.analysis_results:
     if st.button("🔄 Yeni Bir Ses Analiz Et", use_container_width=True):
         st.session_state.analysis_results = None
         st.rerun()
-    
