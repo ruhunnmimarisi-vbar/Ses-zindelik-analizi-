@@ -19,19 +19,15 @@ st.set_page_config(page_title="VBAR | VIP Mistik Deneyim", page_icon="💎", lay
 # --- ULTRA VIP MİSTİK TASARIM (CSS) ---
 st.markdown("""
 <style>
-    /* Arka Plan - Derin Mistik Gradyan */
     .stApp {
         background: linear-gradient(135deg, #2c1630 0%, #4a154b 50%, #1a0b1c 100%);
         color: #fce4ec;
         font-family: 'Helvetica Neue', sans-serif;
     }
-    
-    /* Gizlenecek Streamlit Elementleri */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
 
-    /* VIP Karşılama ve Açıklama Kartı */
     .vip-hero {
         background: rgba(255, 255, 255, 0.04);
         backdrop-filter: blur(20px);
@@ -60,7 +56,6 @@ st.markdown("""
         font-weight: 300;
     }
 
-    /* Ses Kayıt Bölümü Başlığı */
     .section-label {
         color: #e1bee7;
         font-size: 1rem;
@@ -70,7 +65,6 @@ st.markdown("""
         letter-spacing: 0.5px;
     }
 
-    /* TÜM BUTONLAR İÇİN ALTIN SARISI VIP STİLİ */
     div.stButton > button {
         background: linear-gradient(135deg, #ffd700 0%, #ffa000 100%) !important;
         color: #1a0b1c !important;
@@ -90,7 +84,6 @@ st.markdown("""
         background: linear-gradient(135deg, #ffea79 0%, #ffb300 100%) !important;
     }
 
-    /* Sonuç Kartları Tasarımı */
     .result-card {
         background: rgba(255, 255, 255, 0.06);
         backdrop-filter: blur(15px);
@@ -132,8 +125,6 @@ def get_chakra_profile(rms, pitch):
         return "Tepe Çakra", "🟣", "Ametist", "#9B59B6"
 
 # --- UYGULAMA AKIŞI ---
-
-# 1. VIP Karşılama ve Ne Olduğunu Anlatan Açıklama Yazısı
 st.markdown("""
 <div class="vip-hero">
     <div style="font-size: 45px; margin-bottom: 12px; letter-spacing: 8px;">✨ 💎 🔮</div>
@@ -145,14 +136,13 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# 2. Ses Girişi
 st.markdown("<div class='section-label'>🎙️ Analiz için sesinizi kaydedin</div>", unsafe_allow_html=True)
 audio_input = st.audio_input("")
 
 if audio_input:
     st.write("")
     if st.button("✨ Mistik Frekans Analizini Başlat", key="btn_analyze"):
-        with st.spinner("Ses imzanız evrensel akışla taranıyor..."):
+        with st.spinner("Ses imzanız evrensel akışla taranıyor ve süzgeçten geçiriliyor..."):
             audio_bytes = audio_input.read()
             y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
             rms = float(np.mean(librosa.feature.rms(y=y)))
@@ -165,21 +155,29 @@ if audio_input:
             if AI_READY:
                 try:
                     model = genai.GenerativeModel('gemini-1.5-flash')
+                    
+                    # İTERATİF SİMÜLASYON VE ÖZ-DÜZELTME PROMPTU
                     prompt = f"""
-                    Sen VBAR sisteminin manevi enerji ve çakra rehberisin. 
+                    Sen VBAR sisteminin yüksek bilinçli enerji ve çakra rehberisin. 
                     Kullanıcının ses dalgası analiz edildi:
-                    - Frekans: {mean_pitch:.1f} Hz
+                    - Enerji (RMS): {rms:.4f}
+                    - Frekans (Pitch): {mean_pitch:.1f} Hz
                     - Eşleşen Çakra: {chakra_name} ({stone_name})
                     
-                    GÖREVİN:
-                    Bu çakranın ruhsal derinliğini, kişinin potansiyelini son derece şiirsel, lüks ve büyüleyici bir dille yorumla. Asla mekanik olma.
+                    GÖREVİN VE KONTROL MEKANİZMASi:
+                    1. Standart, klişe, mekanik astroloji/enerji cümlelerinden kesinlikle kaçın (Örn: "Enerjiniz çok yüksek, harika gidiyorsunuz" gibi sıradanluklardan arındır).
+                    2. Sesin barındırdığı frekans ile çakra arasındaki potansiyel içsel tezatlığı veya uyumu yakala (Şeytanın avukatı perspektifiyle derinleştir).
+                    3. İlk 5 saniyede (ilk cümlede) kullanıcının dikkatini ve kalbini yakalayacak çarpıcı, lüks ve şiirsel bir metaforla başla.
+                    4. Yorumun sonuna, kullanıcının kendi içine dönmesini sağlayacak derin bir **Sokratik yansıma sorusu** ekle.
+                    
+                    Metni doğrudan bu filtrelerden geçmiş, kusursuz ve büyüleyici nihai Türkçe formatta üret.
                     """
                     response = model.generate_content(prompt)
                     ai_comment = response.text.strip()
                 except Exception:
-                    ai_comment = "Sesinizin mistik frekansı, enerjinizin derin bir akışta olduğunu müjdeliyor."
+                    ai_comment = "Sesinizin mistik frekansı, enerjinizin derin ve sarsılmaz bir akışta olduğunu müjdeliyor. Bu an, hangi eski yükü geride bırakmanız fısıldıyor?"
             else:
-                ai_comment = "Sesinizin mistik frekansı, enerjinizin derin bir akışta olduğunu müjdeliyor."
+                ai_comment = "Sesinizin mistik frekansı, enerjinizin derin ve sarsılmaz bir akışta olduğunu müjdeliyor. Bu an, hangi eski yükü geride bırakmanız fısıldıyor?"
 
             st.session_state.current_analysis = {
                 "id": random.randint(1000, 9999),
@@ -187,7 +185,6 @@ if audio_input:
                 "icon": icon, "col": color, "ai_comment": ai_comment
             }
 
-# 3. Sonuçları Göster ve Kaydetme İmkanı
 if st.session_state.current_analysis:
     res = st.session_state.current_analysis
     
@@ -210,7 +207,6 @@ if st.session_state.current_analysis:
         else:
             st.warning("Bu analiz zaten geçmişinizde mevcut.")
 
-# 4. GEÇMİŞİ LİSTELE VE SİL
 if st.session_state.history:
     st.markdown("---")
     st.subheader("📜 Geçmiş Analizleriniz")
