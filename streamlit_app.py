@@ -3,10 +3,31 @@ import librosa
 import numpy as np
 import io
 import random
+import google.generativeai as genai
+
+# --- API VE MODEL BAĞLANTISI ---
+try:
+    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+    AI_AVAILABLE = True
+except Exception:
+    AI_AVAILABLE = False
 
 # --- SAYFA VE SES AYARLARI ---
 st.set_page_config(page_title="VBAR - Derinlemesine Biyometrik Analiz", page_icon="🎙️")
+
 st.title("🎙️ VBAR - Ses Zindelik ve Enerji Analizi")
+
+# --- REHBER / AÇIKLAMA KISMI ---
+with st.expander("✨ VBAR Nedir ve Nasıl Çalışır?", expanded=True):
+    st.markdown("""
+    **VBAR**, sesinizin biyometrik ve akustik imzasını analiz ederek o anki zihinsel ve enerjik frekansınızı kristal enerjileriyle eşleştiren sezgisel bir rehberdir.
+    
+    * **Frekans (Hz):** Ses tellerinizin saniyedeki titreşim hızını gösterir. Yüksek frekanslar akışkan ve berrak zihinsel alanları simgelerken, derin tonlar köklenmeyi temsil eder.
+    * **Enerji (RMS):** Sesinizin hacmini ve taşıdığı duygusal yoğunluğun gücünü ölçer.
+    * **Niyet Kartı:** Analiz sonucunuza göre o an durup odaklanmanız ve dengeye gelmeniz için size özel oluşturulan rehber eylemdir.
+    """)
+
+st.divider()
 
 # --- TAŞ PROFİLİ BELİRLEME ---
 def get_stone_profile(rms, pitch):
@@ -59,7 +80,7 @@ audio_input = st.audio_input("Analiz edilecek sesinizi kaydedin")
 
 if audio_input:
     if st.button("🔍 Detaylı Biyometrik Analizi Başlat", type="primary", use_container_width=True):
-        with st.spinner("Ses imzanız analiz ediliyor..."):
+        with st.spinner("Ses imzanız analiz ediliyor ve yapay zeka ile yorumlanıyor..."):
             audio_bytes = audio_input.read()
             y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
             rms = float(np.mean(librosa.feature.rms(y=y)))
@@ -69,9 +90,27 @@ if audio_input:
             # Taş profilini belirle
             stone_name, icon, color, desc = get_stone_profile(rms, mean_pitch)
             
+            # Gemini Yapay Zeka Yorumu
+            ai_comment = ""
+            if AI_AVAILABLE:
+                try:
+                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    prompt = f"""
+                    Bir vokal biyometrik analiz uzmanı gibi davran. 
+                    Ses analizi sonuçları -> Frekans: {mean_pitch:.1f} Hz, Enerji (RMS): {rms:.4f}. 
+                    Eşleşen Taş Profili: {stone_name}.
+                    Lütfen bu verilere dayanarak kişinin o anki zindelik, enerji seviyesi ve zihinsel durumu hakkında samimi, derinlikli ve ilham verici kısa bir değerlendirme yap.
+                    """
+                    response = model.generate_content(prompt)
+                    ai_comment = response.text
+                except Exception:
+                    ai_comment = "Yapay zeka bağlantısı şu an kurulamadı, ancak frekans ve taş profiliniz başarıyla çıkarıldı."
+            else:
+                ai_comment = "Yapay zeka anahtarı yapılandırılmamış."
+
             st.session_state.analysis_results = {
                 "rms": rms, "pitch": mean_pitch, "name": stone_name, 
-                "icon": icon, "col": color, "desc": desc
+                "icon": icon, "col": color, "desc": desc, "ai_comment": ai_comment
             }
             st.session_state.current_card = generate_dynamic_card(stone_name)
             st.rerun()
@@ -86,6 +125,12 @@ if st.session_state.analysis_results:
     col1, col2 = st.columns(2)
     col1.metric("Frekans (Hz)", f"{res['pitch']:.1f}")
     col2.metric("Enerji (RMS)", f"{res['rms']:.4f}")
+    
+    st.divider()
+    
+    # Yapay Zeka Yorum Alanı
+    st.markdown("#### 🧠 VBAR Derinlemesine Yapay Zeka Analizi")
+    st.info(res['ai_comment'])
     
     st.divider()
     
