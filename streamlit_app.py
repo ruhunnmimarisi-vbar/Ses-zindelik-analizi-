@@ -31,7 +31,7 @@ st.markdown("""
     footer {visibility: hidden;}
     header {visibility: hidden;}
 
-    /* VIP Karşılama Kartı */
+    /* VIP Karşılama ve Açıklama Kartı */
     .vip-hero {
         background: rgba(255, 255, 255, 0.04);
         backdrop-filter: blur(20px);
@@ -133,12 +133,15 @@ def get_chakra_profile(rms, pitch):
 
 # --- UYGULAMA AKIŞI ---
 
-# 1. VIP Karşılama
+# 1. VIP Karşılama ve Ne Olduğunu Anlatan Açıklama Yazısı
 st.markdown("""
 <div class="vip-hero">
     <div style="font-size: 45px; margin-bottom: 12px; letter-spacing: 8px;">✨ 💎 🔮</div>
     <div class="vip-title">VBAR Mistik Frekans</div>
-    <div class="vip-desc">Sesinizin eşsiz biyometrik imzası, evrenin ve kristallerin kadim frekansıyla hizalanıyor.</div>
+    <div class="vip-desc">
+        <b>VBAR</b>, sesinizin eşsiz biyometrik imzasını analiz ederek otonom sinir sisteminizin ve çakralarınızın enerji akışını okuyan mistik bir rehberdir. 
+        Sesinizdeki titreşimler evrenin ve kristallerin kadim frekansıyla hizalanır; ruhsal dengenizi keşfetmeniz için size özel alan açar.
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
