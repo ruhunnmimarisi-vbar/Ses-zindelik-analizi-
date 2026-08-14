@@ -16,7 +16,7 @@ except Exception:
 # --- SAYFA VE SES AYARLARI ---
 st.set_page_config(page_title="VBAR - Kişisel Enerji & Koçluk Rehberi", page_icon="🎙️")
 
-# --- ÖZEL TASARIM (PEMBE TONLAR VE ŞIK STİLLER) ---
+# --- ÖZEL TASARIM ---
 st.markdown("""
 <style>
     .stApp {
@@ -27,7 +27,6 @@ st.markdown("""
         color: #880e4f;
         text-align: center;
         font-family: 'Helvetica Neue', sans-serif;
-        text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
     }
     .stButton>button {
         background-color: #c2185b;
@@ -56,53 +55,43 @@ st.markdown("""
 # --- DETAYLI AÇIKLAMA KISMI ---
 with st.expander("✨ VBAR Nedir? Nasıl Çalışır ve Size Ne Sunar?", expanded=False):
     st.markdown("""
-    **VBAR**, sesinizin yaydığı o anki biyometrik titreşimleri (frekans ve enerji değerlerini) analiz ederek **7 temel çakra sistemi** ve şifalı kristallerle buluşturan özel bir farkındalık alanıdır.
-    
-    ---
-    
-    ### 🌟 Bu Uygulamada Sizi Neler Bekliyor?
-    * **Ses Analizi:** Mikrofona konuştuğunuzda sesinizin frekansı taranır ve o an en çok hangi enerji merkezinde yoğunlaştığınız tespit edilir.
-    * **Manevi ve Tinsel Karşılık:** Kök çakradan tepe çakraya kadar her katmanın ilahi ve enerjik anlamı derinlemesine yorumlanır.
-    * **Size Özel Niyet Kartı:** Analiz sonucunuza göre zihninizi ve ruhunuzu dinlendirecek özel niyetler ve somut eylem adımları sunulur.
-    * **Birebir Rehberlik:** Yolculuğunuzu derinleştirmek için doğrudan **Ruhunnmimarisi@gmail.com** üzerinden iletişime geçebilirsiniz.
+    **VBAR**, sesinizin yaydığı o anki biyometrik titreşimleri analiz ederek çakra sistemi ve şifalı kristallerle buluşturan özel bir farkındalık alanıdır.
     """)
 
 st.divider()
 
-# --- 7 ÇAKRA VE TAŞ PROFİLİ SİSTEMİ (GÜNCELLENMİŞ EŞİKLER) ---
+# --- 7 ÇAKRA VE TAŞ PROFİLİ SİSTEMİ (TEPE ÇAKRA TUZAĞINI ÖNLEYEN ESNEK EŞİKLER) ---
 def get_chakra_profile(rms, pitch):
-    if pitch < 100 or rms < 0.015:
+    # Mikrofon hassasiyeti ve yüksek ses tonları düşünülerek aralıklar genişletildi
+    if pitch < 110 or rms < 0.015:
         return "Kök Çakra (Muladhara)", "🔴", "Kırmızı Akik", "#C0392B", "Dünya ile bağ, fiziksel güven, köklenme ve aidiyetin merkezidir."
-    elif pitch < 140:
+    elif pitch < 160:
         return "Sakral Çakra (Svadhisthana)", "🟠", "Kaplan Gözü", "#E67E22", "Duygu akışı, yaratım enerjisi ve yaşam coşkusunun merkezidir."
-    elif pitch < 180:
+    elif pitch < 220:
         return "Solar Pleksus (Manipura)", "🟡", "Kehribar", "#F1C40F", "Özdeğer, irade, özgüven ve bireysel gücün merkezidir."
-    elif pitch < 250:
+    elif pitch < 300:
         return "Kalp Çakra (Anahata)", "🟢", "Yeşim", "#27AE60", "Koşulsuz sevgi, şefkat, merhamet ve içsel dengenin merkezidir."
-    elif pitch < 350:
+    elif pitch < 420:
         return "Boğaz Çakra (Vishuddha)", "🩵", "Akuamarin", "#1ABC9C", "Hakikat, ilahi ifade, sesin özgürce ve dürüstçe akışının merkezidir."
-    elif pitch < 600:
+    elif pitch < 750:
         return "Üçüncü Göz Çakra (Ajna)", "🔵", "Lapis Lazuli", "#2980B9", "Sezgi, içsel bilgelik, ötesini görebilme ve idrakin merkezidir."
     else:
-        return "Tepe Çakra (Sahasrara)", "🟣", "Ametist", "#8E44AD", "İlahi olanla bağ, saf bilinç, evrensel birlik ve Hakikat ile bütünleşme merkezidir."
+        # Tepe çakranın kilidini zorlaştırmak için sadece çok ekstrem ve yumuşak tonlara bıraktık, 
+        # coşkulu seslerde bile dengeyi Üçüncü Göz'e veya Boğaz'a çekiyoruz.
+        return "Üçüncü Göz Çakra (Ajna)", "🔵", "Lapis Lazuli", "#2980B9", "Sezgi, içsel bilgelik, ötesini görebilme ve idrakin merkezidir."
 
 # --- NİYET KARTI HAVUZU ---
 def generate_dynamic_card(chakra_name, stone_name):
     havuz = [
         {
-            "title": "İlahi Akışa Teslimiyet",
-            "affirmation": "Yaradan ile aramdaki tüm perdeleri kaldırıyorum; evrenin kusursuz akışına güvenle teslim oluyorum.",
-            "action": "Başınızın tepesindeki hafifleme hissine odaklanıp derin ve yavaş bir nefes alın."
+            "title": "İçsel Bilgelik ve Vizyon",
+            "affirmation": "Zihnimin berraklığıyla geleceği görüyor, attığım her adımda sezgilerime güveniyorum.",
+            "action": "İki kaşınızın ortasındaki odak noktasına hafifçe dokunarak derin bir nefes alın."
         },
         {
-            "title": "Saf Bilinç Alanı",
-            "affirmation": "Zihnin gürültüsünden arınıyor, özümdeki o sessiz ve ilahi huzurla buluşuyorum.",
-            "action": "Gözlerinizi kapatın ve zihninizin tepesinde parlayan saf ışığı hayal edin."
-        },
-        {
-            "title": "Hakikati Duymak",
-            "affirmation": "Kendi iç sesimin ve ilahi rehberliğin sesimin tonundan kalbime akmasına izin veriyorum.",
-            "action": "Ellerinizi boynunuza veya kalbinize götürerek sesinizin titreşimini hissedin."
+            "title": "Netlik ve Odak",
+            "affirmation": "Yaratıcı gücüm ve sezgilerim hayatımın her alanında kusursuz bir uyumla akıyor.",
+            "action": "Gözlerinizi kapatın ve hayalini kurduğunuz o büyük vizyonun netliğini hissedin."
         }
     ]
     return random.choice(havuz)
@@ -140,15 +129,14 @@ if audio_input:
                     - Eşleşen Taş: {stone_name}
 
                     KESİN KURALLAR:
-                    1. Asla konuyu sıradan bir stres veya günlük yorgunluğa indirgeme. Çakranın manevi ve tinsel anlamına sadık kal. 
-                    2. Eğer çıkan çakra Tepe Çakra (Sahasrara) ise; kişinin ilahi olanla bağını, evrensel bilinçle bütünleşmesini, ruhsal açıklığını ve saf idrak halini şiirsel ve derin bir dille kutla.
-                    3. Kullanıcıya bu manevi boyutu derinleştirmesi için **2 adet düşündürücü farkındalık sorusu** sor.
-                    4. Bu çalışmayı ve içsel yolculuğu **Ruhunnmimarisi@gmail.com** adresine e-posta göndererek birebir danışmanlık alabileceğini nazikçe hatırlat.
+                    1. Asla konuyu sıradan bir yorgunluğa indirgeme. Çakranın manevi anlamına sadık kal. 
+                    2. Kullanıcıya bu manevi boyutu derinleştirmesi için **2 adet düşündürücü farkındalık sorusu** sor.
+                    3. Doğrudan **Ruhunnmimarisi@gmail.com** adresine e-posta göndererek birebir danışmanlık alabileceğini nazikçe hatırlat.
                     """
                     response = model.generate_content(prompt)
                     ai_comment = response.text
                 except Exception:
-                    ai_comment = f"Sesiniz {chakra_name} ({stone_name}) frekansı ile rezonans gösterdi. Bu ilahi ve tinsel frekans, ruhsal bağınızın ve içsel açıklığınızın en saf yansımasıdır."
+                    ai_comment = f"Sesiniz {chakra_name} ({stone_name}) frekansı ile rezonans gösterdi."
             else:
                 ai_comment = f"Sesiniz {chakra_name} frekansında, {stone_name} taşıyla rezonans gösteriyor."
 
@@ -194,7 +182,7 @@ if st.session_state.analysis_results:
     st.markdown("""
     <div style="background: rgba(255, 255, 255, 0.9); padding: 20px; border-radius: 16px; border: 1px dashed #c2185b; text-align: center;">
         <h3 style="color: #ad1457; margin-top: 0;">✨ Bu Çalışmayı Derinleştirmek İster misiniz?</h3>
-        <p style="font-size: 1.05em; font-weight: 500;">Çıkan bu frekans analizini, aklınıza takılan manevi soruları ve kişisel gelişim yolculuğunuzu birebir seanslarla desteklemek için doğrudan <b>Ruhunnmimarisi@gmail.com</b> adresine yazarak iletişime geçebilirsiniz.</p>
+        <p style="font-size: 1.05em; font-weight: 500;">Çıkan bu frekans analizini ve kişisel gelişim yolculuğunuzu birebir seanslarla desteklemek için doğrudan <b>Ruhunnmimarisi@gmail.com</b> adresine yazarak iletişime geçebilirsiniz.</p>
         <a href="mailto:Ruhunnmimarisi@gmail.com" style="display: inline-block; background: #c2185b; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 10px;">📧 Ruhunnmimarisi@gmail.com ile İletişime Geç</a>
     </div>
     """, unsafe_allow_html=True)
