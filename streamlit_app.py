@@ -74,7 +74,7 @@ if "history" not in st.session_state: st.session_state.history = []
 if "current" not in st.session_state: st.session_state.current = None
 if "qa_history" not in st.session_state: st.session_state.qa_history = []
 
-# --- NET ÇAKRA VE FREKANS EŞLEŞTİRMELERİ ---
+# --- ÇAKRA VE FREKANS EŞLEŞTİRMELERİ ---
 def get_crystal_by_pitch(pitch):
     if pitch < 170:
         return ("🔴", "Kırmızı Akik", "Kök Çakra", "Topraklanma ve Güven")
@@ -91,48 +91,59 @@ def get_crystal_by_pitch(pitch):
     else:
         return ("🟣", "Ametist", "Tepe Çakra", "Yüksek Bilinç ve Aydınlanma")
 
-# --- GELİŞTİRİLMİŞ AKILLI YANIT MOTORU ---
+# --- GELİŞMİŞ AKILLI İÇSEL ANALİZ MOTORU (API GEREKTİRMEZ) ---
 def generate_smart_response(question):
     q = question.lower()
     
-    # İhanet, Aldatma, Paramparça, Hayal Kırıklığı Senaryoları
-    if any(k in q for k in ["aldat", "ihanet", "yalan", "paramparça", "bırakıp gitti", "terk"]):
+    # 1. Çevresel Gürültü / Mekân Rahatsızlığı (Deniz, Sahil, Müzik, Ses vb.)
+    if any(k in q for k in ["deniz", "kıyı", "sahil", "müzik", "ses", "gürültü", "çalıyor", "rahatsız"]):
         return (
-            "Yaşadığın bu derin ihanet ve sarsıcı hayal kırıklığı karşısında kalbinin acı içinde kalması çok normal. "
-            "Böyle anlarda dünyan başına yıkılmış gibi hissedebilirsin, çünkü sen ilişkiye ve sevgiye dürüstçe adandın. "
-            "Ancak unutma ki bu acı, senin değerini düşürmez; aksine karşı tarafın eksikliğini ve niyetini gösterir. "
-            "Bugün kendine yapabileceğin en büyük iyilik, o kırık parçaları dışarıda aramak yerine, kendi öz sevgine ve ruhunun şifa alanına çekilmektir. "
-            "Zaman bu yarayı kapatacak ve sen bu fırtınadan eskisinden çok daha güçlü çıkacaksın."
+            f"Paylaştığın '{question}' durumunda, doğanın o sakinleştirici ve sonsuz ritmini (deniz sesini) ararken dışarıdan gelen uyumsuz seslere maruz kalmak gerçekten zihni yorar. "
+            "Ancak unutma ki dikkatini nereye odaklarsan enerjin oraya akar. "
+            "Gözlerini kapatıp dalgaların o kıyıya vuruşundaki frekansa odaklanmaya çalış; kulaklarını ve zihnini dışarıdaki gürültüye kapatarak kendi içsel kıyına çekil."
         )
-    # Kalp Kırıklığı / Üzüntü Senaryoları
+    
+    # 2. İhanet / Aldatma / Derin Hayal Kırıklığı
+    elif any(k in q for k in ["aldat", "ihanet", "yalan", "paramparça", "bırakıp gitti", "terk"]):
+        return (
+            "Yaşadığın bu derin ihanet ve sarsıcı hayal kırıklığı karşısında kalbinin acı içinde kalması son derece doğal. "
+            "Böyle anlarda dünyan sarsılmış gibi hissedebilirsin, çünkü sen ilişkiye ve sevgiye dürüstçe bağlandın. "
+            "Ancak bu acı senin değerini asla düşürmez; aksine karşı tarafın eksikliğini gösterir. "
+            "Bugün o kırık parçaları dışarıda aramak yerine, kendi öz sevgine ve ruhunun şifa alanına çekilme vaktidir."
+        )
+    
+    # 3. Genel Üzüntü / Kalp Kırıklığı
     elif any(k in q for k in ["kalp kırık", "hayal kırık", "üzgün", "ağrı", "acır", "ağla"]):
         return (
-            "Yaşadığın bu kırgınlık ve içindeki sessiz ağırlık, ruhunun çok derin bir arınma sürecinden geçtiğini gösteriyor. "
-            "Her gözyaşı ve her acı anı, aslında kalbinin üzerine binen o ağır yükü dışarı akıtır. "
+            "İçindeki bu sessiz ağırlık, ruhunun çok derin bir arınma sürecinden geçtiğini gösteriyor. "
+            "Her gözyaşı, aslında kalbinin üzerine binen o ağır yükü dışarı akıtır. "
             "Kendine bu yas sürecini yaşama izni ver; her şeyi aynı anda omuzlamak zorunda değilsin. "
             "Bugün sadece kendi kabuğuna çekil, derin nefesler al ve içindeki o saf özün yeniden aydınlanmasını bekle."
         )
-    # Can Sıkıntısı / Daralma Senaryoları
+    
+    # 4. Can Sıkıntısı / Daralma
     elif any(k in q for k in ["sıkıl", "daral", "bunul", "ne yapmalıyım", "bununtu"]):
         return (
-            "Canının sıkılması ya da içini bir daralmanın kaplaması, zihninin ve enerjinin artık dış dünyanın rutininden yorulduğunun işaretidir. "
+            "Canının sıkılması ya da içini bir daralmanın kaplaması, enerjinin artık rutinden yorulduğunun işaretidir. "
             "Sana 'biraz dur ve içeri dön' diyor. Hiçbir şey üretmek veya mükemmel olmak zorunda değilsin. "
-            "Pencereyi açıp taze bir nefes al, sevdiğin sakin bir bitki çayı demle ve zihninin gürültüsünü sessizliğe bırak."
+            "Derin bir nefes al, zihninin gürültüsünü sessizliğe bırak ve sadece bu an'da kal."
         )
-    # Kaygı / Korku / Endişe Senaryoları
+    
+    # 5. Kaygı / Korku / Endişe
     elif any(k in q for k in ["kaygı", "korku", "endişe", "stres", "kararsız"]):
         return (
-            "Zihin kontrol edemediği yarınlar ve belirsizlikler için endişelenirken, beden şu anda güvende olmayı unutur. "
+            "Zihin kontrol edemediği yarınlar için endişelenirken, beden şu anda güvende olmayı unutur. "
             "Şimdi omuzlarındaki o gerginliği serbest bırak, ayak tabanlarının yere bastığı teması hisset. "
             "Şu an bu andasın ve güvendesin; her şey kendi ilahi vaktinde yolunu bulacak."
         )
-    # Genel Kapsamlı Akıllı Alternatif
+    
+    # 6. Esnek ve Dinamik Varsayılan Yanıt (Cümleyi Doğrudan Analize Yansıtır)
     else:
         return (
             f"Paylaştığın '{question}' niyetinin arkasındaki o yoğun duyguyu ve arayışı çok net hissediyorum. "
-            f"Hayatın karmaşası içinde bazen yönümüzü kaybetmiş gibi hissetmemiz gayet insani. "
-            f"Ancak bil ki içindeki o sessiz pusula, dışarıdaki tüm gürültüye rağmen her zaman en doğru yolu bilir. "
-            f"Bugün akışa güven ve kendi iç sesinin şefkatli rehberliğine sığın."
+            "Hayatın karmaşası içinde bazen yönümüzü kaybetmiş gibi hissetmemiz gayet insani bir durumdur. "
+            "Ancak bil ki içindeki o sessiz pusula, dışarıdaki tüm gürültüye rağmen her zaman en doğru yolu bilir. "
+            "Bugün akışa güven ve kendi iç sesinin şefkatli rehberliğine sığın."
         )
 
 # --- GÖRSEL KARŞILAMA EKRANI ---
@@ -206,7 +217,7 @@ with tab2:
     st.markdown("<h3 style='color: #ff80ab; text-align: center;'>🌟 Mistik Bilgeye Sor</h3>", unsafe_allow_html=True)
     st.write("Aklına takılan bir soruyu, ruhsal durumunu veya paylaşmak istediğin bir hissi buraya yaz; kelimelerinin ardındaki enerjiyi hissedip sana özel, akışkan bir rehberlik oluşturalım.")
     
-    user_question = st.text_input("Sormak istediğin soru veya niyetin nedir?", placeholder="Örn: Sevgili aldattı kalbim paramparça / Canım sıkılıyor...")
+    user_question = st.text_input("Sormak istediğin soru veya niyetin nedir?", placeholder="Örn: Deniz kıyısındayım ama gürültü var / Sevgili aldattı...")
     
     if st.button("✨ Rehberlik İste"):
         if user_question:
