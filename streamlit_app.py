@@ -60,9 +60,8 @@ with st.expander("✨ VBAR Nedir? Nasıl Çalışır ve Size Ne Sunar?", expande
 
 st.divider()
 
-# --- 7 ÇAKRA VE TAŞ PROFİLİ SİSTEMİ (TEPE ÇAKRA TUZAĞINI ÖNLEYEN ESNEK EŞİKLER) ---
+# --- 7 ÇAKRA VE TAŞ PROFİLİ SİSTEMİ ---
 def get_chakra_profile(rms, pitch):
-    # Mikrofon hassasiyeti ve yüksek ses tonları düşünülerek aralıklar genişletildi
     if pitch < 110 or rms < 0.015:
         return "Kök Çakra (Muladhara)", "🔴", "Kırmızı Akik", "#C0392B", "Dünya ile bağ, fiziksel güven, köklenme ve aidiyetin merkezidir."
     elif pitch < 160:
@@ -76,8 +75,6 @@ def get_chakra_profile(rms, pitch):
     elif pitch < 750:
         return "Üçüncü Göz Çakra (Ajna)", "🔵", "Lapis Lazuli", "#2980B9", "Sezgi, içsel bilgelik, ötesini görebilme ve idrakin merkezidir."
     else:
-        # Tepe çakranın kilidini zorlaştırmak için sadece çok ekstrem ve yumuşak tonlara bıraktık, 
-        # coşkulu seslerde bile dengeyi Üçüncü Göz'e veya Boğaz'a çekiyoruz.
         return "Üçüncü Göz Çakra (Ajna)", "🔵", "Lapis Lazuli", "#2980B9", "Sezgi, içsel bilgelik, ötesini görebilme ve idrakin merkezidir."
 
 # --- NİYET KARTI HAVUZU ---
@@ -124,21 +121,17 @@ if audio_input:
                     Kullanıcının ses dalgası analiz edildi:
                     - Frekans: {mean_pitch:.1f} Hz
                     - Enerji Seviyesi (RMS): {rms:.4f}
-                    - Eşleşen Çakra: {chakra_name}
-                    - Çakra Anlamı: {chakra_desc}
-                    - Eşleşen Taş: {stone_name}
+                    - Eşleşen Çakra: {chakra_name} ({stone_name})
 
-                    KESİN KURALLAR:
-                    1. Asla konuyu sıradan bir yorgunluğa indirgeme. Çakranın manevi anlamına sadık kal. 
-                    2. Kullanıcıya bu manevi boyutu derinleştirmesi için **2 adet düşündürücü farkındalık sorusu** sor.
-                    3. Doğrudan **Ruhunnmimarisi@gmail.com** adresine e-posta göndererek birebir danışmanlık alabileceğini nazikçe hatırlat.
+                    GÖREVİN:
+                    Asla "Sesiniz şu çakra ile rezonans gösterdi" gibi mekanik veya tekrar eden bir cümle KURMA. Doğrudan bu frekansın zihinsel ve sezgisel boyuttaki derin anlamını, vizyoner gücünü şiirsel ve ilham verici bir dille anlat. Ardından kullanıcının bu enerjiyi hayatına geçirmesi için ilham verici derin bir perspektif sun ve bireysel seanslar için Ruhunnmimarisi@gmail.com adresini nazikçe hatırlat.
                     """
                     response = model.generate_content(prompt)
                     ai_comment = response.text
                 except Exception:
-                    ai_comment = f"Sesiniz {chakra_name} ({stone_name}) frekansı ile rezonans gösterdi."
+                    ai_comment = f"Bu özel frekans, zihninizin ve sezgilerinizin en saf potansiyelini gözler önüne seriyor."
             else:
-                ai_comment = f"Sesiniz {chakra_name} frekansında, {stone_name} taşıyla rezonans gösteriyor."
+                ai_comment = f"Bu özel frekans, zihninizin ve sezgilerinizin en saf potansiyelini gözler önüne seriyor."
 
             st.session_state.analysis_results = {
                 "rms": rms, "pitch": mean_pitch, "chakra": chakra_name, "stone": stone_name,
@@ -191,3 +184,4 @@ if st.session_state.analysis_results:
     if st.button("🔄 Yeni Bir Ses Analiz Et", use_container_width=True):
         st.session_state.analysis_results = None
         st.rerun()
+    
