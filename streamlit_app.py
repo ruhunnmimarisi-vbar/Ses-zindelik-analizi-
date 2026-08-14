@@ -3,18 +3,9 @@ import librosa
 import numpy as np
 import io
 import random
-import google.generativeai as genai
 
 # --- SAYFA AYARLARI ---
 st.set_page_config(page_title="VBAR | Mistik Kristal Frekans", layout="centered")
-
-# --- GEMINI API YAPILANDIRMASI ---
-# Not: API anahtarınızı Streamlit Secrets üzerinden güvenle çekiyoruz (Hugging Face Secrets / st.secrets)
-if "GEMINI_API_KEY" in st.secrets:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    model = genai.GenerativeModel('gemini-1.5-flash')
-else:
-    model = None
 
 # --- GELİŞMİŞ ESTETİK VE ÇERÇEVE (CSS) ---
 st.markdown("""
@@ -100,22 +91,32 @@ def get_crystal_by_pitch(pitch):
     else:
         return ("🟣", "Ametist", "Tepe Çakra", "Yüksek Bilinç ve Aydınlanma")
 
-# --- GERÇEK YAPAY ZEKA (GEMINI) DİNAMİK YANIT ÜRETİCİ ---
-def generate_ai_response(question):
-    if model is None:
-        return "Yapay zeka model bağlantısı (API Key) yapılandırılmamış. Lütfen secrets ayarlarını kontrol edin."
+# --- GELİŞMİŞ AKILLI YANIT MOTORU (API GEREKTİRMEZ) ---
+def generate_smart_response(question):
+    q = question.lower()
     
-    prompt = f"""
-    Sen derin sezgileri olan, bilge, şefkatli ve mistik bir yaşam koçusun. 
-    Kullanıcının sana ilettiği şu ifadeyi veya soruyu dikkatle incele: "{question}"
-    
-    Kullanıcının o anki hissini (can sıkıntısı, kalp kırıklığı, yorgunluk, arayış vb.) yargılamadan, ezbere ve mekanik kalıplara girmeden, doğrudan onun yazdığı duruma özel, akıcı, samimi ve ruhsal olarak iyi hissettirici derinlemesine bir rehberlik sun. Yanıtın sıcak bir dille yazılmış olsun ve gerektiğinde pratik, sakinleştirici bir bakış açısı ekle.
-    """
-    try:
-        response = model.generate_content(prompt)
-        return response.text
-    except Exception as e:
-        return f"Mistik bağ kurulurken bir aksaklık yaşandı: {str(e)}"
+    if any(k in q for k in ["kalp kırık", "hayal kırık", "üzgün", "ağrı", "acır"]):
+        return (
+            "Yaşadığın bu hayal kırıklığı ve kalpteki ağırlık, ruhunun çok derin bir dersi öğrendiğini gösteriyor. "
+            "Her kırılma anı, aslında içindeki o saf sevgi alanını dış dünyadan biraz daha içeri çekip kendi merkezine sarılman için bir davettir. "
+            "Bugün kendine karşı çok şefkatli ol; zaman her şeyi en şifalı şekilde yerine koyacaktır."
+        )
+    elif any(k in q for k in ["sıkıl", "daral", "bunul", "ne yapmalıyım"]):
+        return (
+            "Canının sıkılması ya da daralman, zihninin ve enerjinin artık rutinden yorulduğunun ve sana 'biraz dur' demek istediğinin habercisi. "
+            "Hiçbir şey yapmak zorunda hissetme. Derin bir nefes al, pencereyi açıp taze havayı içine çek ya da sevdiğin sakin bir bitki çayı eşliğinde sadece an'da kal."
+        )
+    elif any(k in q for k in ["kaygı", "korku", "endişe", "stres"]):
+        return (
+            "Zihin kontrol edemediği yarınlar için endişelenirken, beden şu anda güvende olmayı unutur. "
+            "Şimdi omuzlarını serbest bırak, ayak tabanlarının yere bastığı teması hisset. Güvendesin; her şey kendi ilahi vaktinde yolunu bulacak."
+        )
+    else:
+        return (
+            f"Paylaştığın bu niyetin arkasındaki enerjiyi ve arayışı derinden hissediyorum. "
+            f"Hayatın karmaşası içinde bazen yönümüzü bulmak zorlaşabilir, ancak kalbindeki o sessiz pusula her zaman en doğru yolu bilir. "
+            f"Dış dünyanın gürültüsünü biraz kıs ve kendi iç sesinin rehberliğine güven."
+        )
 
 # --- GÖRSEL KARŞILAMA EKRANI ---
 st.markdown('<div class="crystal-hero">💎</div>', unsafe_allow_html=True)
@@ -186,14 +187,14 @@ with tab1:
 
 with tab2:
     st.markdown("<h3 style='color: #ff80ab; text-align: center;'>🌟 Mistik Bilgeye Sor</h3>", unsafe_allow_html=True)
-    st.write("Aklına takılan bir soruyu, ruhsal durumunu veya paylaşmak istediğin bir hissi buraya yaz; yapay zeka kelimelerinin ardındaki enerjiyi hissedip sana özel, akışkan bir rehberlik oluştursun.")
+    st.write("Aklına takılan bir soruyu, ruhsal durumunu veya paylaşmak istediğin bir hissi buraya yaz; kelimelerinin ardındaki enerjiyi hissedip sana özel, akışkan bir rehberlik oluşturalım.")
     
-    user_question = st.text_input("Sormak istediğin soru veya niyetin nedir?", placeholder="Örn: Canım sıkılıyor / Kalp kırıklığı yaşıyorum...")
+    user_question = st.text_input("Sormak istediğin soru veya niyetin nedir?", placeholder="Örn: Hayal kırıklığı yaşıyorum / Canım sıkılıyor...")
     
     if st.button("✨ Rehberlik İste"):
         if user_question:
             with st.spinner("Mistik rehberlik hazırlanıyor..."):
-                yanit = generate_ai_response(user_question)
+                yanit = generate_smart_response(user_question)
                 st.session_state.qa_history.append({"soru": user_question, "cevap": yanit})
         else:
             st.warning("Lütfen rehberlik almak istediğin soruyu yaz.")
