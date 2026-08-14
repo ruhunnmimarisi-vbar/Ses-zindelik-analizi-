@@ -104,6 +104,7 @@ st.markdown("""
 # --- HAFIZA YÖNETİMİ ---
 if "current_analysis" not in st.session_state: st.session_state.current_analysis = None
 if "history" not in st.session_state: st.session_state.history = []
+if "chat_dialogue" not in st.session_state: st.session_state.chat_dialogue = []
 
 # --- 7 ÇAKRA PROFİLİ ---
 def get_chakra_profile(rms, pitch):
@@ -147,7 +148,6 @@ if audio_input:
             y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
             rms = float(np.mean(librosa.feature.rms(y=y)))
             
-            # GÜRÜLTÜYÜ ÖNLEYEN YIN ALGORİTMASI VE GÜVENLİK SINIRI
             f0 = librosa.yin(y, fmin=80.0, fmax=400.0)
             valid_f0 = f0[~np.isnan(f0)]
             mean_pitch = float(np.mean(valid_f0)) if len(valid_f0) > 0 else 150.0
@@ -167,14 +167,14 @@ if audio_input:
                     - Eşleşen Çakra: {chakra_name} ({stone_name})
                     
                     GÖREVİN:
-                    1. Standart, klişe astroloji cümlelerinden kaçın.
+                    1. Standart, klişe astroloji cümlelerinden kesinlikle kaçın.
                     2. İlk cümlede kullanıcının kalbini yakalayacak çarpıcı, lüks ve şiirsel bir metafor kullan.
-                    3. Yorumun sonuna, kullanıcının kendi içine dönmesini sağlayacak derin bir Sokratik yansıma sorusu ekle.
+                    3. Yorumun sonuna, kullanıcının kendi içine dönmesini sağlayacak derin ve sarsıcı bir **Sokratik yansıma sorusu** ekle.
                     """
                     response = model.generate_content(prompt)
                     ai_comment = response.text.strip()
-                except Exception:
-                    ai_comment = "Sesinizin mistik frekansı, enerjinizin derin ve sarsılmaz bir akışta olduğunu müjdeliyor. Bu an, hangi eski yükü geride bırakmanızı fısıldıyor?"
+                except Exception as e:
+                    ai_comment = f"Sesinizin mistik frekansı, enerjinizin derin ve sarsılmaz bir akışta olduğunu müjdeliyor. Bu an, hangi eski yükü geride bırakmanızı fısıldıyor?"
             else:
                 ai_comment = "Sesinizin mistik frekansı, enerjinizin derin ve sarsılmaz bir akışta olduğunu müjdeliyor. Bu an, hangi eski yükü geride bırakmanızı fısıldıyor?"
 
@@ -183,6 +183,8 @@ if audio_input:
                 "rms": rms, "pitch": mean_pitch, "chakra": chakra_name, "stone": stone_name,
                 "icon": icon, "col": color, "ai_comment": ai_comment
             }
+            # Yeni analiz geldiğinde sohbet diyalogunu sıfırla
+            st.session_state.chat_dialogue = [{"role": "assistant", "content": ai_comment}]
 
 if st.session_state.current_analysis:
     res = st.session_state.current_analysis
@@ -196,15 +198,49 @@ if st.session_state.current_analysis:
     </div>
     """, unsafe_allow_html=True)
     
-    st.info(res['ai_comment'])
+    # --- İNTERAKTİF SOHBET / SORU CEVAP DÖNGÜSÜ ---
+    st.markdown("---")
+    st.markdown("#### 💬 İçsel Rehberle Diyalog")
     
-    st.write("")
-    if st.button("💾 Bu Sonucu Geçmişe Kaydet", key="btn_save"):
-        if st.session_state.current_analysis not in st.session_state.history:
-            st.session_state.history.append(st.session_state.current_analysis)
-            st.success("Başarıyla kaydedildi!")
+    # Geçmiş diyalogları ekrana yazdır
+    for message in st.session_state.chat_dialogue:
+        if message["role"] == "assistant":
+            st.info(message["content"])
         else:
-            st.warning("Bu analiz zaten geçmişinizde mevcut.")
+            st.success(f"Sen: {message['content']}")
+            
+    # Kullanıcının rehbere cevap yazabileceği alan
+    user_reply = st.text_input("Rehberin sorusuna veya hissettiklerine dair yanıtını yaz:", key="user_input_reply")
+    
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        if st.button(" Gönder & Derinleş", key="btn_send_reply"):
+            if user_reply and AI_READY:
+                st.session_state.chat_dialogue.append({"role": "user", "content": user_reply})
+                with st.spinner("Rehber enerjini derinlemesine senteziyor..."):
+                    try:
+                        chat_model = genai.GenerativeModel('gemini-1.5-flash')
+                        history_prompt = f"""
+                        Sen VBAR mistik çakra rehberisin. Kullanıcı ile arandaki diyalog akışı şu şekildedir:
+                        Çakra Durumu: {res['chakra']} ({res['stone']}), Frekans: {res['pitch']:.1f} Hz.
+                        Son kullanıcı yanıtı: "{user_reply}"
+                        
+                        GÖREVİN: Kullanıcının bu cevabını psikolojik ve ruhsal açıdan analiz et. Onu yargılamadan, şefkatli, lüks ve derin bir tonla yeni bir farkındalık aç ve yeni bir derinleştirici soruyla diyaloğu sürdür.
+                        """
+                        response = chat_model.generate_content(history_prompt)
+                        reply_text = response.text.strip()
+                        st.session_state.chat_dialogue.append({"role": "assistant", "content": reply_text})
+                        st.rerun()
+                    except Exception as e:
+                        st.error("Bağlantı sırasında bir akış kesintisi oldu.")
+    
+    with col2:
+        if st.button("💾 Bu Sonucu Geçmişe Kaydet", key="btn_save"):
+            if st.session_state.current_analysis not in st.session_state.history:
+                st.session_state.history.append(st.session_state.current_analysis)
+                st.success("Başarıyla kaydedildi!")
+            else:
+                st.warning("Bu analiz zaten geçmişinizde mevcut.")
 
 if st.session_state.history:
     st.markdown("---")
