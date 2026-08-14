@@ -2,7 +2,6 @@ import streamlit as st
 import librosa
 import numpy as np
 import io
-import random
 import google.generativeai as genai
 
 # --- API VE MODEL BAĞLANTISI ---
@@ -12,9 +11,8 @@ genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 st.set_page_config(page_title="VBAR - Derinlemesine Biyometrik Analiz", page_icon="🎙️")
 st.title("🎙️ VBAR - Ses Zindelik ve Enerji Analizi")
 
-# --- GELİŞMİŞ TAŞ VE FREKANS HAVUZU ---
+# --- TAŞ PROFİLİ BELİRLEME ---
 def get_stone_profile(rms, pitch):
-    # Taş havuzunu 4 ana profile çıkardık
     if rms < 0.03: 
         return "Oniks", "🖤", "#2C3E50", "Topraklanma ve derin sessizlik arayışında bir frekans."
     elif rms < 0.06: 
@@ -42,22 +40,23 @@ if audio_input:
             # Taş profilini belirle
             stone_name, icon, color, desc = get_stone_profile(rms, mean_pitch)
             
-            # Gemini'ye Gelişmiş Prompt
-            model = genai.GenerativeModel('gemini-1.5-flash')
-            
-            prompt = f"""
-            Ses tonu analizi: 
-            Frekans: {mean_pitch:.1f} Hz, Enerji (RMS): {rms:.4f}. 
-            Bu ses tonu '{stone_name}' {icon} frekansında eşleşti. 
-            Lütfen bu ses profilini bir 'Vokal Biyometrik' raporu gibi oku. 
-            Kişiye özel bir enerji durumu değerlendirmesi yap ve zihinsel/fiziksel odaklanma için 
-            kısa, derinlikli bir öneride bulun. Çok nazik ve profesyonel bir eğitmen dili kullan.
-            """
-            
-            ai_response = model.generate_content(prompt)
+            # Gemini'ye Sadece Metin Tabanlı Güvenli Prompt
+            try:
+                model = genai.GenerativeModel('gemini-1.5-flash')
+                prompt = f"""
+                Bir vokal biyometrik analiz uzmanı gibi davran. 
+                Ses analizi sonuçları -> Frekans: {mean_pitch:.1f} Hz, Enerji (RMS): {rms:.4f}. 
+                Eşleşen Taş Profili: {stone_name}.
+                Lütfen bu verilere dayanarak kişinin o anki zindelik, enerji seviyesi ve zihinsel durumu hakkında samimi, derinlikli ve yol gösterici bir değerlendirme yap.
+                """
+                ai_response = model.generate_content(prompt)
+                ai_comment = ai_response.text
+            except Exception as e:
+                ai_comment = "Analiz tamamlandı ancak yapay zeka metin yorumu oluşturulamadı."
+
             st.session_state.analysis_results = {
                 "rms": rms, "pitch": mean_pitch, "name": stone_name, 
-                "icon": icon, "col": color, "desc": desc, "ai_comment": ai_response.text
+                "icon": icon, "col": color, "desc": desc, "ai_comment": ai_comment
             }
             st.rerun()
 
@@ -65,7 +64,6 @@ if audio_input:
 if st.session_state.analysis_results:
     res = st.session_state.analysis_results
     
-    # Görselleştirme Bölümü
     st.markdown(f"## {res['icon']} {res['name']} Frekansı")
     st.markdown(f"*{res['desc']}*")
     
@@ -81,4 +79,4 @@ if st.session_state.analysis_results:
     if st.button("🔄 Yeni Bir Ses Analiz Et"):
         st.session_state.analysis_results = None
         st.rerun()
-        
+    
