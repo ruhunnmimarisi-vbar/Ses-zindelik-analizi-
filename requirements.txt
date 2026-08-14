@@ -1,5 +1,5 @@
 streamlit
 librosa
 numpy
-google-generativeai>=0.8.0
 soundfile
+google-generativeai>=0.8.0
