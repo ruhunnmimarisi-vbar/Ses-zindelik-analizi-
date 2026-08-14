@@ -173,7 +173,8 @@ if audio_input:
                     """
                     response = model.generate_content(prompt)
                     ai_comment = response.text.strip()
-                except Exception as e:
+                except Exception as e: st.error(f"Hata Detayı: {str(e)}")
+                    
                     ai_comment = f"Sesinizin mistik frekansı, enerjinizin derin ve sarsılmaz bir akışta olduğunu müjdeliyor. Bu an, hangi eski yükü geride bırakmanızı fısıldıyor?"
             else:
                 ai_comment = "Sesinizin mistik frekansı, enerjinizin derin ve sarsılmaz bir akışta olduğunu müjdeliyor. Bu an, hangi eski yükü geride bırakmanızı fısıldıyor?"
