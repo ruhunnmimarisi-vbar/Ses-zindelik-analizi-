@@ -91,6 +91,19 @@ def get_crystal_by_pitch(pitch):
     else:
         return ("🟣", "Ametist", "Tepe Çakra", "Yüksek Bilinç ve Aydınlanma")
 
+# --- AKILLI YANIT ÜRETİCİ (DİNAMİK REHBERLİK) ---
+def generate_ai_response(question):
+    q_lower = question.lower()
+    
+    if "canım sıkıl" in q_lower or "sıkıldı" in q_lower:
+        return "Can sıkıntısı aslında zihnin biraz durulmak, dış dünyadan içeriye dönmek istediğinin en güzel işaretidir. Belki rutin akışına küçük bir mola verip sevdiğin bir bitki çayı demleyebilir, derin bir nefes alarak an'a gelebilir ya da hiç yapmadığın küçük bir keşif yapabilirsin. Zihnine biraz boşluk bırak."
+    elif "kaygı" in q_lower or "korku" in q_lower or "endişe" in q_lower:
+        return "Kaygı, kontrol edemediğimiz gelecekle zihnimizin kurduğu yorucu bir köprüdür. Şu ana, ayaklarının yere basma hissine odaklanalım. Kök çakranı destekleyecek derin nefesler al; güvendesin ve her şey kendi vaktinde yolunu bulacak."
+    elif "yorgun" in q_lower or "tüken" in q_lower:
+        return "Bedenin ve ruhun senden dinlenmek için küçük bir alan istiyor. Her şeyi aynı anda mükemmel yapma yükümlülüğün yok. Bugün sadece durmaya, kendine şefkat göstermeye ve enerjini toplamaya izin ver."
+    else:
+        return f"'{question}' ifadesindeki enerjiyi derinden hissediyorum. Hayatın koşturmacası içinde bazen yönümüzü bulmak zorlaşabilir ama içindeki o zarif denge ve sezgi gücü her daim seni doğruya taşır. Akışa güven ve kendi iç sesine kulak ver."
+
 # --- GÖRSEL KARŞILAMA EKRANI ---
 st.markdown('<div class="crystal-hero">💎</div>', unsafe_allow_html=True)
 st.markdown('<div class="vip-title">VBAR MİSTİK FREKANS</div>', unsafe_allow_html=True)
@@ -100,7 +113,6 @@ st.markdown('<div class="vip-subtitle">Sesinin ve ruhunun kristalini keşfet...<
 tab1, tab2 = st.tabs(["✨ Frekans & Kristal Analizi", "🔮 Mistik Soru-Cevap Rehberi"])
 
 with tab1:
-    # --- GİRDİLER ---
     duygu_durumu = st.selectbox("✨ Şu anki duygu durumun nedir?", ["Huzurlu", "Kaygılı", "Heyecanlı", "Yorgun", "İlham Dolu"], key="duygu_select")
     audio_input = st.audio_input("🎙️ Sesini Kaydet:")
 
@@ -128,7 +140,6 @@ with tab1:
                 }
                 st.success("✨ Ruhsal frekansınız başarıyla tarandı.")
 
-    # --- SONUÇ EKRANI ---
     if st.session_state.current:
         res = st.session_state.current
         st.markdown(f"""
@@ -147,7 +158,6 @@ with tab1:
             else:
                 st.warning("Bu analiz zaten hafızanızda kayıtlı.")
 
-    # --- GEÇMİŞ ---
     if st.session_state.history:
         st.markdown("---")
         st.markdown("<h3 style='color: #ff80ab; text-align: center;'>📜 Mistik Geçmişin</h3>", unsafe_allow_html=True)
@@ -163,20 +173,14 @@ with tab1:
 
 with tab2:
     st.markdown("<h3 style='color: #ff80ab; text-align: center;'>🌟 Mistik Bilgeye Sor</h3>", unsafe_allow_html=True)
-    st.write("Aklına takılan bir soruyu, karar vermekte zorlandığın bir konuyu veya ruhsal bir durumu buraya yaz; evrenin ve içsel rehberliğin süzgecinden geçirelim.")
+    st.write("Aklına takılan bir soruyu, ruhsal durumunu veya paylaşmak istediğin bir hissi buraya yaz; kelimelerinin ardındaki enerjiyi okuyup sana özel rehberlik sunalım.")
     
-    user_question = st.text_input("Sormak istediğin soru veya niyetin nedir?", placeholder="Örn: Bugün enerjimi dengelemek için ne yapmalıyım?")
+    user_question = st.text_input("Sormak istediğin soru veya niyetin nedir?", placeholder="Örn: Canım sıkılıyor / Bugün ne yapmalıyım?")
     
     if st.button("✨ Rehberlik İste"):
         if user_question:
-            cevaplar = [
-                f"'{user_question}' niyetin için kristallerin fısıltısı: Derin bir nefes al ve iç sesine güven. Bu süreçte sabır en büyük rehberindir.",
-                f"'{user_question}' konusunda evren sana 'akışta kal' diyor. Direnci bırakıp kabule geçtiğinde yolun aydınlanacak.",
-                f"'{user_question}' sorusunun cevabı senin kalbinde saklı. Bugün biraz toprakla temas etmek ve içsel sınırlarını korumak sana çok iyi gelecek.",
-                f"'{user_question}' enerjisiyle ilgili olarak: İçindeki o şifalı gücü fark et. Doğru zamandasın, doğru yerdesin."
-            ]
-            secilen_cevap = random.choice(cevaplar)
-            st.session_state.qa_history.append({"soru": user_question, "cevap": secilen_cevap})
+            yanit = generate_ai_response(user_question)
+            st.session_state.qa_history.append({"soru": user_question, "cevap": yanit})
         else:
             st.warning("Lütfen rehberlik almak istediğin soruyu yaz.")
             
