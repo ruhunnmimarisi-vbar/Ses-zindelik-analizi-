@@ -107,19 +107,19 @@ if "history" not in st.session_state: st.session_state.history = []
 
 # --- 7 ÇAKRA PROFİLİ ---
 def get_chakra_profile(rms, pitch):
-    normalized_pitch = min(max(pitch, 80.0), 800.0)
+    normalized_pitch = min(max(pitch, 80.0), 400.0)
     
-    if normalized_pitch < 180:
+    if normalized_pitch < 125:
         return "Kök Çakra", "🔴", "Kırmızı Akik", "#E74C3C"
-    elif normalized_pitch < 270:
+    elif normalized_pitch < 165:
         return "Sakral Çakra", "🟠", "Kaplan Gözü", "#E67E22"
-    elif normalized_pitch < 360:
+    elif normalized_pitch < 205:
         return "Solar Pleksus", "🟡", "Kehribar", "#F1C40F"
-    elif normalized_pitch < 450:
+    elif normalized_pitch < 245:
         return "Kalp Çakra", "🟢", "Yeşim", "#2ECC71"
-    elif normalized_pitch < 540:
+    elif normalized_pitch < 285:
         return "Boğaz Çakra", "🩵", "Akuamarin", "#1ABC9C"
-    elif normalized_pitch < 650:
+    elif normalized_pitch < 330:
         return "Üçüncü Göz Çakra", "🔵", "Lapis Lazuli", "#3498DB"
     else:
         return "Tepe Çakra", "🟣", "Ametist", "#9B59B6"
@@ -142,12 +142,16 @@ audio_input = st.audio_input("")
 if audio_input:
     st.write("")
     if st.button("✨ Mistik Frekans Analizini Başlat", key="btn_analyze"):
-        with st.spinner("Ses imzanız evrensel akışla taranıyor ve süzgeçten geçiriliyor..."):
+        with st.spinner("Ses imzanız evrensel akışla taranıyor..."):
             audio_bytes = audio_input.read()
             y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
             rms = float(np.mean(librosa.feature.rms(y=y)))
-            pitches, _ = librosa.piptrack(y=y, sr=sr)
-            mean_pitch = float(np.mean(pitches[pitches > 0])) if len(pitches[pitches > 0]) > 0 else 150.0
+            
+            # GÜRÜLTÜYÜ ÖNLEYEN YIN ALGORİTMASI VE GÜVENLİK SINIRI
+            f0 = librosa.yin(y, fmin=80.0, fmax=400.0)
+            valid_f0 = f0[~np.isnan(f0)]
+            mean_pitch = float(np.mean(valid_f0)) if len(valid_f0) > 0 else 150.0
+            mean_pitch = max(80.0, min(mean_pitch, 400.0))
             
             chakra_name, icon, stone_name, color = get_chakra_profile(rms, mean_pitch)
             
@@ -155,8 +159,6 @@ if audio_input:
             if AI_READY:
                 try:
                     model = genai.GenerativeModel('gemini-1.5-flash')
-                    
-                    # İTERATİF SİMÜLASYON VE ÖZ-DÜZELTME PROMPTU
                     prompt = f"""
                     Sen VBAR sisteminin yüksek bilinçli enerji ve çakra rehberisin. 
                     Kullanıcının ses dalgası analiz edildi:
@@ -164,20 +166,17 @@ if audio_input:
                     - Frekans (Pitch): {mean_pitch:.1f} Hz
                     - Eşleşen Çakra: {chakra_name} ({stone_name})
                     
-                    GÖREVİN VE KONTROL MEKANİZMASi:
-                    1. Standart, klişe, mekanik astroloji/enerji cümlelerinden kesinlikle kaçın (Örn: "Enerjiniz çok yüksek, harika gidiyorsunuz" gibi sıradanluklardan arındır).
-                    2. Sesin barındırdığı frekans ile çakra arasındaki potansiyel içsel tezatlığı veya uyumu yakala (Şeytanın avukatı perspektifiyle derinleştir).
-                    3. İlk 5 saniyede (ilk cümlede) kullanıcının dikkatini ve kalbini yakalayacak çarpıcı, lüks ve şiirsel bir metaforla başla.
-                    4. Yorumun sonuna, kullanıcının kendi içine dönmesini sağlayacak derin bir **Sokratik yansıma sorusu** ekle.
-                    
-                    Metni doğrudan bu filtrelerden geçmiş, kusursuz ve büyüleyici nihai Türkçe formatta üret.
+                    GÖREVİN:
+                    1. Standart, klişe astroloji cümlelerinden kaçın.
+                    2. İlk cümlede kullanıcının kalbini yakalayacak çarpıcı, lüks ve şiirsel bir metafor kullan.
+                    3. Yorumun sonuna, kullanıcının kendi içine dönmesini sağlayacak derin bir Sokratik yansıma sorusu ekle.
                     """
                     response = model.generate_content(prompt)
                     ai_comment = response.text.strip()
                 except Exception:
-                    ai_comment = "Sesinizin mistik frekansı, enerjinizin derin ve sarsılmaz bir akışta olduğunu müjdeliyor. Bu an, hangi eski yükü geride bırakmanız fısıldıyor?"
+                    ai_comment = "Sesinizin mistik frekansı, enerjinizin derin ve sarsılmaz bir akışta olduğunu müjdeliyor. Bu an, hangi eski yükü geride bırakmanızı fısıldıyor?"
             else:
-                ai_comment = "Sesinizin mistik frekansı, enerjinizin derin ve sarsılmaz bir akışta olduğunu müjdeliyor. Bu an, hangi eski yükü geride bırakmanız fısıldıyor?"
+                ai_comment = "Sesinizin mistik frekansı, enerjinizin derin ve sarsılmaz bir akışta olduğunu müjdeliyor. Bu an, hangi eski yükü geride bırakmanızı fısıldıyor?"
 
             st.session_state.current_analysis = {
                 "id": random.randint(1000, 9999),
