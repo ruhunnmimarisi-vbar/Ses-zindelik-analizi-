@@ -16,17 +16,44 @@ except Exception:
 # --- SAYFA VE SES AYARLARI ---
 st.set_page_config(page_title="VBAR - Kişisel Enerji & Koçluk Rehberi", page_icon="🎙️")
 
-# --- ÖZEL TASARIM ---
+# --- ÖZEL TASARIM VE BÜYÜLEYİCİ GÖRSEL STİLLER ---
 st.markdown("""
 <style>
     .stApp {
         background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 50%, #f48fb1 100%);
         color: #3e2723;
     }
+    .hero-container {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        padding: 30px 20px;
+        border-radius: 24px;
+        text-align: center;
+        margin-bottom: 25px;
+        box-shadow: 0 10px 30px rgba(194, 24, 91, 0.08);
+    }
+    .crystal-icon {
+        font-size: 50px;
+        margin-bottom: 5px;
+        animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-6px); }
+        100% { transform: translateY(0px); }
+    }
     h1 {
         color: #880e4f;
-        text-align: center;
         font-family: 'Helvetica Neue', sans-serif;
+        font-size: 26px;
+        margin-bottom: 8px;
+    }
+    .hero-desc {
+        color: #6a1b9a;
+        font-size: 1.05em;
+        font-weight: 500;
+        line-height: 1.5;
     }
     .stButton>button {
         background-color: #c2185b;
@@ -43,12 +70,12 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- GÖRSEL ALAN ---
+# --- YENİLENMİŞ BÜYÜLEYİCİ GÖRSEL ALAN ---
 st.markdown("""
-<div style="text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.6); border-radius: 20px; backdrop-filter: blur(5px); margin-bottom: 20px; box-shadow: 0 8px 16px rgba(0,0,0,0.05);">
-    <div style="font-size: 55px; margin-bottom: -10px;">☁️ 💎 ☁️</div>
-    <h1 style="font-size: 28px; margin-top: 5px; color: #880e4f;">VBAR Biyometrik Enerji Rehberi</h1>
-    <p style="font-size: 1.15em; color: #6a1b9a; font-weight: 600;">Sesinizin frekansıyla ruhsal merkezinizi keşfedin, kristal enerjisiyle hizalanın.</p>
+<div class="hero-container">
+    <div class="crystal-icon">💎✨</div>
+    <h1>VBAR Biyometrik Enerji Rehberi</h1>
+    <p class="hero-desc">Sesinizin eşsiz frekansıyla ruhsal merkezinizi keşfedin, kristal enerjisiyle hizalanın.</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -62,9 +89,6 @@ st.divider()
 
 # --- 7 ÇAKRA VE TAŞ PROFİLİ SİSTEMİ (DİNAMİK ORANTISAL DAĞILIM) ---
 def get_chakra_profile(rms, pitch):
-    # Ses ne kadar yüksek çıkarsa çıksın (1500 Hz dahil), 
-    # ses tonunuzun spektral dağılımına göre 7 çakraya adil bir şekilde paylaştırıyoruz.
-    # Pitch değerini normal bir aralığa (0 - 700 arası) endeksliyoruz.
     normalized_pitch = min(max(pitch, 80.0), 800.0)
     
     if normalized_pitch < 180:
