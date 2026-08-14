@@ -70,9 +70,9 @@ st.markdown("""
         letter-spacing: 0.5px;
     }
 
-    /* Özel Buton Tasarımı (Analiz/Kaydet) */
-    div.stButton > button.save-btn {
-        background: linear-gradient(135deg, #ffd700 0%, #ffa000 100%);
+    /* TÜM BUTONLAR İÇİN ALTIN SARISI VIP STİLİ */
+    div.stButton > button {
+        background: linear-gradient(135deg, #ffd700 0%, #ffa000 100%) !important;
         color: #1a0b1c !important;
         border-radius: 50px !important;
         padding: 12px 24px !important;
@@ -81,43 +81,24 @@ st.markdown("""
         font-size: 1rem !important;
         box-shadow: 0 8px 20px rgba(255, 215, 0, 0.25);
         transition: all 0.3s ease;
-        width: auto;
-        margin: 10px auto; /* Ortala */
+        width: 100%;
     }
     
-    div.stButton > button.save-btn:hover {
+    div.stButton > button:hover {
         transform: translateY(-2px);
         box-shadow: 0 12px 25px rgba(255, 215, 0, 0.4);
-        background: linear-gradient(135deg, #ffea79 0%, #ffb300 100%);
-    }
-    
-    /* Sil Butonu Tasarımı */
-    div.stButton > button.delete-btn {
-        background: rgba(255, 215, 0, 0.1) !important;
-        color: #ffd700 !important;
-        border: 1px solid rgba(255, 215, 0, 0.3) !important;
-        border-radius: 20px !important;
-        padding: 6px 18px !important;
-        font-size: 0.85rem !important;
-        margin-top: -10px;
-        margin-bottom: 20px;
-    }
-    
-    div.stButton > button.delete-btn:hover {
-        background: rgba(255, 215, 0, 0.2) !important;
+        background: linear-gradient(135deg, #ffea79 0%, #ffb300 100%) !important;
     }
 
-    /* Geçmiş Kartları Tasarımı */
+    /* Sonuç Kartları Tasarımı */
     .result-card {
         background: rgba(255, 255, 255, 0.06);
         backdrop-filter: blur(15px);
         border: 1px solid rgba(255, 255, 255, 0.15);
-        padding: 15px 20px;
-        border-radius: 16px;
-        margin-bottom: 8px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        padding: 20px;
+        border-radius: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
     
     .result-text {
@@ -127,7 +108,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- HAFIZA YÖNETİMİ (Hem Sonuç Hem Geçmiş) ---
+# --- HAFIZA YÖNETİMİ ---
 if "current_analysis" not in st.session_state: st.session_state.current_analysis = None
 if "history" not in st.session_state: st.session_state.history = []
 
@@ -161,14 +142,13 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# 2. Ses Girişi (Geri Getirildi!)
+# 2. Ses Girişi
 st.markdown("<div class='section-label'>🎙️ Analiz için sesinizi kaydedin</div>", unsafe_allow_html=True)
 audio_input = st.audio_input("")
 
 if audio_input:
     st.write("")
-    # Analiz Butonu (Stil Eklendi)
-    if st.button("✨ Mistik Frekans Analizini Başlat", key="btn_analyze", type="primary"):
+    if st.button("✨ Mistik Frekans Analizini Başlat", key="btn_analyze"):
         with st.spinner("Ses imzanız evrensel akışla taranıyor..."):
             audio_bytes = audio_input.read()
             y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
@@ -203,7 +183,6 @@ if audio_input:
                 "rms": rms, "pitch": mean_pitch, "chakra": chakra_name, "stone": stone_name,
                 "icon": icon, "col": color, "ai_comment": ai_comment
             }
-            # Analizden sonra sayfayı yenilemeye gerek yok, sadece kaydı göster.
 
 # 3. Sonuçları Göster ve Kaydetme İmkanı
 if st.session_state.current_analysis:
@@ -220,36 +199,31 @@ if st.session_state.current_analysis:
     
     st.info(res['ai_comment'])
     
-    # Kaydet Butonu (Stil ve İşlev Eklendi)
     st.write("")
-    if st.button("💾 Bu Sonucu Geçmişe Kaydet", key="btn_save", help="Bu analizi kalıcı geçmişinize ekler."):
+    if st.button("💾 Bu Sonucu Geçmişe Kaydet", key="btn_save"):
         if st.session_state.current_analysis not in st.session_state.history:
             st.session_state.history.append(st.session_state.current_analysis)
             st.success("Başarıyla kaydedildi!")
         else:
             st.warning("Bu analiz zaten geçmişinizde mevcut.")
 
-# 4. GEÇMİŞİ LİSTELE VE SİL (İstediğiniz gibi)
+# 4. GEÇMİŞİ LİSTELE VE SİL
 if st.session_state.history:
     st.markdown("---")
     st.subheader("📜 Geçmiş Analizleriniz")
     
-    # En yeniden en eskiye sıralamak için ters çevir
     for i, item in enumerate(reversed(st.session_state.history)):
-        # Geri çevirdiğimiz listenin orijinal indeksini bulmamız gerekiyor
         original_index = len(st.session_state.history) - 1 - i
         
         with st.container():
             st.markdown(f"""
-            <div class='result-card'>
+            <div class='result-card' style='padding: 12px 20px; margin-bottom: 5px;'>
                 <div class='result-text' style='color: {item['col']}; font-size: 1.0rem;'>
                     {item['icon']} {item['chakra']} | {item['pitch']:.1f} Hz
                 </div>
             </div>
             """, unsafe_allow_html=True)
             
-            # Silme Butonu (Stil ve İşlev Eklendi)
-            if st.button(f"🗑️ Sil", key=f"del_{item['id']}", type="secondary"):
-                # Orijinal indeksteki elemanı sil
+            if st.button(f"🗑️ Bu Kaydı Sil #{item['id']}", key=f"del_{item['id']}"):
                 st.session_state.history.pop(original_index)
                 st.rerun()
