@@ -43,7 +43,8 @@ if audio_input:
             stone_name, icon, color, desc = get_stone_profile(rms, mean_pitch)
             
             # Gemini'ye Gelişmiş Prompt
-            model = genai.GenerativeModel('gemini-2.5-flash')
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            
             prompt = f"""
             Ses tonu analizi: 
             Frekans: {mean_pitch:.1f} Hz, Enerji (RMS): {rms:.4f}. 
