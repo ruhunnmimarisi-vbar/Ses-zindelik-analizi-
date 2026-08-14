@@ -3,10 +3,6 @@ import librosa
 import numpy as np
 import io
 import random
-import google.generativeai as genai
-
-# --- API VE MODEL BAĞLANTISI ---
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 # --- SAYFA VE SES AYARLARI ---
 st.set_page_config(page_title="VBAR - Derinlemesine Biyometrik Analiz", page_icon="🎙️")
@@ -57,14 +53,13 @@ def generate_dynamic_card(stone_name):
 # --- HAFIZA YÖNETİMİ ---
 if "analysis_results" not in st.session_state: st.session_state.analysis_results = None
 if "current_card" not in st.session_state: st.session_state.current_card = None
-if "card_flipped" not in st.session_state: st.session_state.card_flipped = False
 
 # --- SES GİRDİSİ VE ANALİZ ---
 audio_input = st.audio_input("Analiz edilecek sesinizi kaydedin")
 
 if audio_input:
     if st.button("🔍 Detaylı Biyometrik Analizi Başlat", type="primary", use_container_width=True):
-        with st.spinner("Ses imzanız analiz ediliyor ve yorumlanıyor..."):
+        with st.spinner("Ses imzanız analiz ediliyor..."):
             audio_bytes = audio_input.read()
             y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
             rms = float(np.mean(librosa.feature.rms(y=y)))
@@ -74,25 +69,10 @@ if audio_input:
             # Taş profilini belirle
             stone_name, icon, color, desc = get_stone_profile(rms, mean_pitch)
             
-            # Gemini Metin Analizi
-            try:
-                model = genai.GenerativeModel('gemini-1.5-flash')
-                prompt = f"""
-                Bir vokal biyometrik analiz uzmanı gibi davran. 
-                Ses analizi sonuçları -> Frekans: {mean_pitch:.1f} Hz, Enerji (RMS): {rms:.4f}. 
-                Eşleşen Taş Profili: {stone_name}.
-                Lütfen bu verilere dayanarak kişinin o anki zindelik, enerji seviyesi ve zihinsel durumu hakkında samimi, derinlikli bir değerlendirme yap.
-                """
-                ai_response = model.generate_content(prompt)
-                ai_comment = ai_response.text
-            except Exception as e:
-                ai_comment = "Analiz tamamlandı ancak yapay zeka metin yorumu oluşturulamadı."
-
             st.session_state.analysis_results = {
                 "rms": rms, "pitch": mean_pitch, "name": stone_name, 
-                "icon": icon, "col": color, "desc": desc, "ai_comment": ai_comment
+                "icon": icon, "col": color, "desc": desc
             }
-            st.session_state.card_flipped = False
             st.session_state.current_card = generate_dynamic_card(stone_name)
             st.rerun()
 
@@ -106,11 +86,6 @@ if st.session_state.analysis_results:
     col1, col2 = st.columns(2)
     col1.metric("Frekans (Hz)", f"{res['pitch']:.1f}")
     col2.metric("Enerji (RMS)", f"{res['rms']:.4f}")
-    
-    st.divider()
-    
-    st.markdown("#### 🧠 VBAR Derinlemesine Analiz")
-    st.info(res['ai_comment'])
     
     st.divider()
     
@@ -130,5 +105,3 @@ if st.session_state.analysis_results:
     if st.button("🔄 Yeni Bir Ses Analiz Et", use_container_width=True):
         st.session_state.analysis_results = None
         st.rerun()
-    
-    
