@@ -16,32 +16,26 @@ except Exception:
 # --- SAYFA VE SES AYARLARI ---
 st.set_page_config(page_title="VBAR - Kişisel Enerji & Koçluk Rehberi", page_icon="🎙️")
 
-# --- ÖZEL TASARIM (PEMBE TONLAR VE BULUT HİSSİYATI) ---
+# --- ÖZEL TASARIM (PEMBE TONLAR VE ŞIK PUNTO AYARLARI) ---
 st.markdown("""
 <style>
-    /* Ana Arka Plan ve Genel Tema */
     .stApp {
         background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 50%, #f48fb1 100%);
-        color: #4a154b;
+        color: #3e2723;
     }
-    
-    /* Başlık Stili */
     h1 {
-        color: #ad1457;
+        color: #880e4f;
         text-align: center;
         font-family: 'Helvetica Neue', sans-serif;
-        text-shadow: 1px 1px 2px rgba(255,255,255,0.6);
+        text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
     }
-    
-    /* Expander ve Bilgi Kutuları */
     .streamlit-expanderHeader {
-        background-color: rgba(255, 255, 255, 0.7);
-        color: #880e4f !important;
-        font-weight: bold;
+        background-color: rgba(255, 255, 255, 0.85);
+        color: #ad1457 !important;
+        font-weight: 700;
+        font-size: 1.1em;
         border-radius: 12px;
     }
-    
-    /* Buton Tasarımları */
     .stButton>button {
         background-color: #c2185b;
         color: white;
@@ -59,34 +53,31 @@ st.markdown("""
 
 # --- GÖRSEL ALAN: BULUTLAR İÇİNDE KRİSTAL TAŞ ---
 st.markdown("""
-<div style="text-align: center; padding: 15px; background: rgba(255, 255, 255, 0.5); border-radius: 20px; backdrop-filter: blur(5px); margin-bottom: 20px; box-shadow: 0 8px 16px rgba(0,0,0,0.05);">
+<div style="text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.6); border-radius: 20px; backdrop-filter: blur(5px); margin-bottom: 20px; box-shadow: 0 8px 16px rgba(0,0,0,0.05);">
     <div style="font-size: 55px; margin-bottom: -10px;">☁️ 💎 ☁️</div>
     <h1 style="font-size: 28px; margin-top: 5px; color: #880e4f;">VBAR Biyometrik Enerji Rehberi</h1>
-    <p style="font-size: 1.1em; color: #6a1b9a; font-weight: 500;">Sesinizin frekansıyla ruhsal merkezinizi keşfedin, kristal enerjisiyle hizalanın.</p>
+    <p style="font-size: 1.15em; color: #6a1b9a; font-weight: 600;">Sesinizin frekansıyla ruhsal merkezinizi keşfedin, kristal enerjisiyle hizalanın.</p>
 </div>
 """, unsafe_allow_html=True)
 
-# --- DETAYLI VE RENKLİ AÇIKLAMA KISMI ---
+# --- DETAYLI, RENKLİ VE KALIN PUNTOLU AÇIKLAMA KISMI (STREAMLIT MARKDOWN İLE) ---
 with st.expander("✨ VBAR Nedir? Nasıl Çalışır ve Size Ne Sunar?", expanded=True):
     st.markdown("""
-    <div style="color: #311b92; line-height: 1.6;">
-        <p style="font-size: 1.05em;"><b>VBAR</b>, sesinizin yaydığı o anki biyometrik titreşimleri (frekans ve enerji değerlerini) analiz ederek 7 temel çakra sistemi ve şifalı kristallerle buluşturan özel bir farkındalık alanıdır.</p>
-        
-        <hr style="border: 0; height: 1px; background: #e91e63; opacity: 0.3; margin: 10px 0;">
-        
-        <p><b>🌟 Bu Uygulamada Sizi Neler Bekliyor?</b></p>
-        <ul>
-            <li><b>Ses Analizi:</b> Mikrofona birkaç saniye konuştuğunuzda, sesinizin frekansı taranır ve o an en çok hangi enerji merkezinde yoğunlaştığınız tespit edilir.</li>
-            <li><b>Manevi ve Tinsel Karşılık:</b> Sistem, kök çakradan tepe çakraya kadar her katmanın kendine has ilahi ve enerjik anlamını derinlemesine yorumlar.</li>
-            <li><b>Size Özel Niyet Kartı:</b> Analiz sonucunuza göre o an zihninizi ve ruhunuzu dinlendirecek özel niyetler ve somut eylem adımları alırsınız.</li>
-            <li><b>Birebir Rehberlik:</b> Yolculuğunuzu derinleştirmek ve aklınızdaki soruları paylaşmak için doğrudan <b style="color: #c2185b;">Ruhunnmimarisi@gmail.com</b> üzerinden iletişime geçebilirsiniz.</li>
-        </ul>
-    </div>
-    """, unsafe_allow_html=True)
+    **VBAR**, sesinizin yaydığı o anki biyometrik titreşimleri (frekans ve enerji değerlerini) analiz ederek **7 temel çakra sistemi** ve şifalı kristallerle buluşturan özel bir farkındalık alanıdır.
+    
+    ---
+    
+    ### 🌟 Bu Uygulamada Sizi Neler Bekliyor?
+    
+    * **Ses Analizi:** Mikrofona birkaç saniye konuştuğunuzda, sesinizin frekansı taranır ve o an en çok hangi enerji merkezinde yoğunlaştığınız tespit edilir.
+    * **Manevi ve Tinsel Karşılık:** Sistem, kök çakradan tepe çakraya kadar her katmanın kendine has ilahi ve enerjik anlamını derinlemesine yorumlar.
+    * **Size Özel Niyet Kartı:** Analiz sonucunuza göre o an zihninizi ve ruhunuzu dinlendirecek özel niyetler ve somut eylem adımları alırsınız.
+    * **Birebir Rehberlik:** Yolculuğunuzu derinleştirmek ve aklınızdaki soruları paylaşmak için doğrudan **Ruhunnmimarisi@gmail.com** üzerinden iletişime geçebilirsiniz.
+    """)
 
 st.divider()
 
-# --- 7 ÇAKRA VE TAŞ PROFİLİ SİSTEMİ (MANEVİ HAKİKATLERİYLE) ---
+# --- 7 ÇAKRA VE TAŞ PROFİLİ SİSTEMİ ---
 def get_chakra_profile(rms, pitch):
     if pitch < 120 or rms < 0.02:
         return "Kök Çakra (Muladhara)", "🔴", "Kırmızı Akik", "#C0392B", "Dünya ile bağ, fiziksel güven, köklenme ve aidiyetin merkezidir."
@@ -129,7 +120,8 @@ if "analysis_results" not in st.session_state: st.session_state.analysis_results
 if "current_card" not in st.session_state: st.session_state.current_card = None
 
 # --- SES GİRDİSİ VE ANALİZ ---
-audio_input = st.audio_input("🎤 Analiz edilecek sesinizi kaydetmek için mikrofona dokunun")
+st.markdown("<p style='font-weight: bold; color: #880e4f; font-size: 1.1em;'>🎤 Analiz edilecek sesinizi kaydetmek için mikrofona dokunun</p>", unsafe_allow_html=True)
+audio_input = st.audio_input("")
 
 if audio_input:
     if st.button("🔍 Detaylı Çakra ve Enerji Analizini Başlat", type="primary", use_container_width=True):
@@ -197,10 +189,10 @@ if st.session_state.analysis_results:
     card = st.session_state.current_card
     
     st.markdown(f"""
-    <div style="border: 2px solid {res['col']}; padding: 20px; border-radius: 16px; background: rgba(255,255,255,0.7);">
+    <div style="border: 2px solid {res['col']}; padding: 20px; border-radius: 16px; background: rgba(255,255,255,0.85);">
         <h3 style="color:{res['col']}; margin-top:0;">{card['title']}</h3>
-        <p style="font-size: 1.1em;">"{card['affirmation']}"</p>
-        <div style="background:{res['col']}22; padding:12px; border-radius:10px;">💡 <b>Eylem:</b> {card['action']}</div>
+        <p style="font-size: 1.1em; font-weight: 500;">"{card['affirmation']}"</p>
+        <div style="background:{res['col']}22; padding:12px; border-radius:10px; font-weight: 500;">💡 <b>Eylem:</b> {card['action']}</div>
     </div>
     """, unsafe_allow_html=True)
     
@@ -208,9 +200,9 @@ if st.session_state.analysis_results:
     
     st.divider()
     st.markdown("""
-    <div style="background: rgba(255, 255, 255, 0.8); padding: 20px; border-radius: 16px; border: 1px dashed #c2185b; text-align: center;">
+    <div style="background: rgba(255, 255, 255, 0.9); padding: 20px; border-radius: 16px; border: 1px dashed #c2185b; text-align: center;">
         <h3 style="color: #ad1457; margin-top: 0;">✨ Bu Çalışmayı Derinleştirmek İster misiniz?</h3>
-        <p style="font-size: 1.05em;">Çıkan bu frekans analizini, aklınıza takılan manevi soruları ve kişisel gelişim yolculuğunuzu birebir seanslarla desteklemek için doğrudan <b>Ruhunnmimarisi@gmail.com</b> adresine yazarak iletişime geçebilirsiniz.</p>
+        <p style="font-size: 1.05em; font-weight: 500;">Çıkan bu frekans analizini, aklınıza takılan manevi soruları ve kişisel gelişim yolculuğunuzu birebir seanslarla desteklemek için doğrudan <b>Ruhunnmimarisi@gmail.com</b> adresine yazarak iletişime geçebilirsiniz.</p>
         <a href="mailto:Ruhunnmimarisi@gmail.com" style="display: inline-block; background: #c2185b; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 10px;">📧 Ruhunnmimarisi@gmail.com ile İletişime Geç</a>
     </div>
     """, unsafe_allow_html=True)
@@ -219,3 +211,4 @@ if st.session_state.analysis_results:
     if st.button("🔄 Yeni Bir Ses Analiz Et", use_container_width=True):
         st.session_state.analysis_results = None
         st.rerun()
+    
