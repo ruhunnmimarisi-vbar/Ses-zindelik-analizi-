@@ -24,7 +24,7 @@ with st.expander("✨ VBAR Nedir ve Size Nasıl Rehberlik Eder?", expanded=True)
     **VBAR**, sesinizin biyometrik imzasını (frekans ve enerji değerlerini) analitik bir hassasiyetle 7 temel çakra ve kristal frekanslarıyla buluşturan sezgisel bir rehberdir.
     
     * **Nasıl Fayda Sağlar?** Sesiniz o anki ruhsal, manevi ve enerjik konumunuzu ele verir. 
-    * **Birebir Danışmanlık:** Analiz sonucundaki derin manevi içgörülerle kendi üzerinizde farkındalık yaratır; bu yolculuğu **Meral Erdil** eşliğinde birebir danışmanlık seanslarıyla derinleştirebilirsiniz.
+    * **Birebir Danışmanlık:** Analiz sonucundaki derin manevi içgörülerle kendi üzerinizde farkındalık yaratır; bu yolculuğu **Ruhunnmimarisi@gmail.com** üzerinden iletişime geçerek birebir danışmanlık seanslarıyla derinleştirebilirsiniz.
     """)
 
 st.divider()
@@ -85,7 +85,6 @@ if audio_input:
             
             chakra_name, icon, stone_name, color, chakra_desc = get_chakra_profile(rms, mean_pitch)
             
-            # Yapay Zeka İçin Kesin Kurallı Manevi Prompt
             ai_comment = ""
             if AI_READY:
                 try:
@@ -103,7 +102,7 @@ if audio_input:
                     1. Asla konuyu sıradan bir stres veya günlük yorgunluğa indirgeme. Çakranın manevi ve tinsel anlamına sadık kal. 
                     2. Eğer çıkan çakra Tepe Çakra (Sahasrara) ise; kişinin ilahi olanla bağını, evrensel bilinçle bütünleşmesini, ruhsal açıklığını ve saf idrak halini şiirsel ve derin bir dille kutla.
                     3. Kullanıcıya bu manevi boyutu derinleştirmesi için **2 adet düşündürücü farkındalık sorusu** sor.
-                    4. Bu çalışmayı ve içsel yolculuğu uzmandan (Meral Erdil) birebir danışmanlık alarak derinleştirebileceğini nazikçe hatırlat.
+                    4. Bu çalışmayı ve içsel yolculuğu **Ruhunnmimarisi@gmail.com** adresine e-posta göndererek birebir danışmanlık alabileceğini nazikçe hatırlat.
                     """
                     response = model.generate_content(prompt)
                     ai_comment = response.text
@@ -154,7 +153,7 @@ if st.session_state.analysis_results:
     st.markdown("""
     <div style="background: rgba(26, 188, 156, 0.1); padding: 20px; border-radius: 16px; border: 1px dashed #1ABC9C; text-align: center;">
         <h3 style="color: #16A085; margin-top: 0;">✨ Bu Çalışmayı Derinleştirmek İster misiniz?</h3>
-        <p style="font-size: 1.05em;">Çıkan bu frekans analizini, aklınıza takılan manevi soruları ve kişisel gelişim yolculuğunuzu birebir seanslarla desteklemek için doğrudan <b>Meral Erdil</b> ile iletişime geçebilirsiniz.</p>
+        <p style="font-size: 1.05em;">Çıkan bu frekans analizini, aklınıza takılan manevi soruları ve kişisel gelişim yolculuğunuzu birebir seanslarla desteklemek için doğrudan <b>Ruhunnmimarisi@gmail.com</b> adresine yazarak iletişime geçebilirsiniz.</p>
         <a href="mailto:Ruhunnmimarisi@gmail.com" style="display: inline-block; background: #1ABC9C; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 10px;">📧 Ruhunnmimarisi@gmail.com ile İletişime Geç</a>
     </div>
     """, unsafe_allow_html=True)
@@ -163,4 +162,3 @@ if st.session_state.analysis_results:
     if st.button("🔄 Yeni Bir Ses Analiz Et", use_container_width=True):
         st.session_state.analysis_results = None
         st.rerun()
-    
