@@ -173,8 +173,7 @@ if audio_input:
                     """
                     response = model.generate_content(prompt)
                     ai_comment = response.text.strip()
-                except Exception as e: st.error(f"Hata Detayı: {str(e)}")
-                    
+                except Exception as e:
                     ai_comment = f"Sesinizin mistik frekansı, enerjinizin derin ve sarsılmaz bir akışta olduğunu müjdeliyor. Bu an, hangi eski yükü geride bırakmanızı fısıldıyor?"
             else:
                 ai_comment = "Sesinizin mistik frekansı, enerjinizin derin ve sarsılmaz bir akışta olduğunu müjdeliyor. Bu an, hangi eski yükü geride bırakmanızı fısıldıyor?"
@@ -184,7 +183,6 @@ if audio_input:
                 "rms": rms, "pitch": mean_pitch, "chakra": chakra_name, "stone": stone_name,
                 "icon": icon, "col": color, "ai_comment": ai_comment
             }
-            # Yeni analiz geldiğinde sohbet diyalogunu sıfırla
             st.session_state.chat_dialogue = [{"role": "assistant", "content": ai_comment}]
 
 if st.session_state.current_analysis:
@@ -203,14 +201,12 @@ if st.session_state.current_analysis:
     st.markdown("---")
     st.markdown("#### 💬 İçsel Rehberle Diyalog")
     
-    # Geçmiş diyalogları ekrana yazdır
     for message in st.session_state.chat_dialogue:
         if message["role"] == "assistant":
             st.info(message["content"])
         else:
             st.success(f"Sen: {message['content']}")
             
-    # Kullanıcının rehbere cevap yazabileceği alan
     user_reply = st.text_input("Rehberin sorusuna veya hissettiklerine dair yanıtını yaz:", key="user_input_reply")
     
     col1, col2 = st.columns([1, 1])
@@ -233,7 +229,9 @@ if st.session_state.current_analysis:
                         st.session_state.chat_dialogue.append({"role": "assistant", "content": reply_text})
                         st.rerun()
                     except Exception as e:
-                        st.error("Bağlantı sırasında bir akış kesintisi oldu.")
+                        st.error(f"Hata Detayı: {str(e)}")
+            elif not AI_READY:
+                st.error("Yapay zeka aktif değil. Lütfen Secrets ayarlarını kontrol edin.")
     
     with col2:
         if st.button("💾 Bu Sonucu Geçmişe Kaydet", key="btn_save"):
