@@ -2,6 +2,7 @@ import streamlit as st
 import librosa
 import numpy as np
 import io
+import os
 
 # --- SAYFA YAPILANDIRMASI ---
 st.set_page_config(page_title="Ruhun Mimarisi | VBAR Biyometrik Analiz", layout="centered", page_icon="🔬")
@@ -51,14 +52,17 @@ if audio_bytes:
         </div>
         """, unsafe_allow_html=True)
         
-        # Somatik Rahatlama Modülü (Eşiğe göre otomatik çıkar)
+        # Somatik Rahatlama Modülü (GitHub'daki tam dosya adıyla eşleştirildi)
         if zcr > 0.12:
             st.warning("⚠️ Ses frekansınızda zihinsel yoğunluk tespit edildi. Dinlendirici somatik akış başlatılıyor:")
-            st.audio("rahatlama.mp3", format="audio/mp3")
+            if os.path.exists("rahatlama .mp3"):
+                st.audio("rahatlama .mp3", format="audio/mp3")
+            else:
+                st.error("⚠️ 'rahatlama .mp3' dosyası klasörde bulunamadı.")
         else:
             st.success("✅ Enerjiniz dengeli ve akışta.")
 
-# 3. ADIM: KURUMSAL İLETİŞİM FORMU (Doğru E-Posta Adresiyle Güncellendi)
+# 3. ADIM: KURUMSAL İLETİŞİM FORMU
 st.markdown("---")
 with st.form("iletisim_formu"):
     st.subheader("📩 Ruhun Mimarisi - Uzman Raporu Talep Et")
@@ -67,7 +71,6 @@ with st.form("iletisim_formu"):
     ad_soyad = st.text_input("Adınız Soyadınız")
     kullanici_mail = st.text_input("E-posta Adresiniz")
     
-    # Doğru kurumsal mail adresi
     hedef_eposta = "ruhunnmimarisi@gmail.com"
     
     submitted = st.form_submit_button("Raporu 'Ruhun Mimarisi' Ekibine Gönder")
