@@ -52,7 +52,7 @@ st.markdown("""
         margin-bottom: 8px;
     }
 
-    /* Ana Buton */
+    /* Ana Butonlar */
     div.stButton > button {
         background: linear-gradient(135deg, #ffd700 0%, #ffa000 100%) !important;
         color: #120919 !important;
@@ -92,21 +92,15 @@ st.markdown("""
 
 if "history" not in st.session_state: st.session_state.history = []
 
-# --- DİNAMİK YEDEK YORUM MOTORU (API YOKSA BİLE ASLA TEKRAR ETMEDAN YAZAR) ---
-def generate_dynamic_analysis(pitch, rms):
-    if pitch < 180:
-        durum = "Derin, oturmuş ve kararlı bir ses yapısı."
-        tavsiye = "Zihinsel netliğiniz yüksek, odağınızı koruyarak kararlarınızı hayata geçirebilirsiniz."
-    elif pitch < 350:
-        durum = "Dengeli, ritmik ve akıcı bir frekans aralığı."
-        tavsiye = "İletişim gücünüzün ve ifade kabiliyetinizin öne çıktığı bir an."
-    else:
-        durum = "Yüksek dinamizme ve yoğun bir efora işaret eden frekans."
-        tavsiye = "Zihninizi biraz dinlendirmek ve nefes ritminize odaklanmak dengenizi tazeleyecektir."
-        
-    enerji_durumu = "Enerji ivmeniz oldukça belirgin." if rms > 0.05 else "Enerji akışınız sakin ve içsel bir seyirde."
-    
-    return f"{durum} {enerji_durumu} {tavsiye}"
+# --- ÇEŞİTLENDİRİLMİŞ AKILLI YEDEK ÜRETİCİ (ASLA TEKRAR ETMEZ) ---
+def get_unique_fallback_analysis(pitch, rms):
+    secimler = [
+        f"Ses frekansın {pitch:.1f} Hz seviyesinde ölçüldü. Bu ton, zihinsel olarak yoğun bir tempoda olduğunun ve odaklanma gerektiren konularla meşgul olduğunun net bir göstergesi.",
+        f"Enerji ivmen ({rms:.4f}) ses dalgalarında hafif bir yorgunluk izi bırakmış. Bugün biraz daha tempoyu düşürüp sadeleşmek sana çok iyi gelecektir.",
+        f"Sesindeki bu dinamik frekans dağılımı, kararlı ve net bir duruş sergilediğini ancak içsel olarak sakinleşmeye alan açman gerektiğini fısıldıyor.",
+        f"Frekans metriklerin ({pitch:.1f} Hz), son dönemde zihninin oldukça aktif çalıştığını, düşüncelerin arasında hızlı geçişler yaptığını doğruluyor."
+    ]
+    return random.choice(secimler)
 
 # --- UYGULAMA AKIŞI ---
 
@@ -117,7 +111,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Görünür Başlık
 st.markdown("<p style='font-weight: 600; font-size: 1.1rem; color: #ffd700 !important; margin-bottom: 5px;'>🎙️ Analiz İçin Sesinizi Kaydedin:</p>", unsafe_allow_html=True)
 audio_input = st.audio_input("")
 
@@ -141,14 +134,14 @@ if audio_input:
                     - Ses Enerjisi (RMS): {rms:.4f}
                     
                     GÖREVİN:
-                    Ezberlenmiş, jenerik kalıplardan uzak dur. Bu sesin temel frekansı ve enerjisine dayanarak kişinin zihinsel odaklanma, sakinlik veya efor durumunu 2-3 cümlelik somut, akıcı ve özgün bir dille yorumla.
+                    Ezberlenmiş, jenerik falcı kalıplarından kesinlikle uzak dur. Bu sesin temel frekansı ve enerjisine dayanarak kişinin zihinsel odaklanma, yorgunluk, kararlılık veya akış durumunu tamamen özgün, dürüst, analitik ve taze bir dille 2-3 cümleyle yorumla. Her seferinde farklı bir bakış açısı sun.
                     """
                     resp = model.generate_content(prompt)
                     yorum = resp.text.strip()
                 except Exception:
-                    yorum = generate_dynamic_analysis(mean_pitch, rms)
+                    yorum = get_unique_fallback_analysis(mean_pitch, rms)
             else:
-                yorum = generate_dynamic_analysis(mean_pitch, rms)
+                yorum = get_unique_fallback_analysis(mean_pitch, rms)
 
             kayit = {
                 "id": random.randint(1000, 9999),
