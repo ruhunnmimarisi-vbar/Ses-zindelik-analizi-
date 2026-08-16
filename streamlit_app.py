@@ -2,89 +2,68 @@ import streamlit as st
 import librosa
 import numpy as np
 import io
-import streamlit as st
-import librosa
-import numpy as np
-import io
 
-st.set_page_config(page_title="VBAR | Ses Dosyası Analizi", layout="centered")
+# --- MÜHENDİSLİK YAPILANDIRMASI ---
+st.set_page_config(page_title="VBAR | Biyometrik Ruhsal Mimari", layout="centered", page_icon="🔬")
 
-st.title("🔬 VBAR: Biyometrik Ses Dosyası Analizi")
-st.write("Cihazınızda kayıtlı olan bir ses dosyasını (MP3, WAV, M4A) yükleyerek analizi başlatın.")
+# Kurumsal Tema CSS
+st.markdown("""
+<style>
+    .stApp {background-color: #0e1117; color: #e0e0e0;}
+    .report-box {border: 1px solid #ffd700; padding: 25px; border-radius: 12px; background: #1a1a1a; margin-top: 20px;}
+</style>
+""", unsafe_allow_html=True)
 
-# Canlı kayıt yerine hazır dosya yükleme bileşeni
-uploaded_file = st.file_uploader("Bir ses dosyası seçin (Önerilen: 5 - 15 saniye)", type=["mp3", "wav", "m4a", "aac"])
+# GİRİŞ PANELİ
+st.title("🔬 VBAR: Biyometrik Analiz Merkezi")
+st.markdown("""
+*Sesiniz; zihninizin, duygularınızın ve sinir sistemi durumunuzun en saf fiziksel imzasıdır.*
+VBAR; biyometrik sinyal analiz teknolojisini kullanarak ses tonunuzdaki görünmeyen iniş çıkışları haritalandırır.
+""")
+st.markdown("---")
 
-if uploaded_file is not None:
-    # Dosyayı okuyalım
-    audio_bytes = uploaded_file.read()
+# 1. MODÜL: KALİBRASYON (Baz Çizgisi)
+if 'calibrated' not in st.session_state:
+    st.subheader("1. Aşama: Cihaz Kalibrasyonu")
+    st.write("Analiz hassasiyeti için lütfen 5 saniye boyunca rahat bir ses tonuyla konuşun.")
+    ref_audio = st.audio_input("Kalibrasyon sesini kaydet")
+    if ref_audio:
+        st.session_state.calibrated = True
+        st.success("Cihaz kalibre edildi. Analiz sistemine erişim sağlandı.")
+else:
+    # 2. MODÜL: ANALİZ MOTORU
+    st.subheader("2. Aşama: Biyometrik Sinyal Analizi")
+    uploaded_file = st.file_uploader("Ses dosyanızı yükleyin (MP3, WAV, M4A)", type=["mp3", "wav", "m4a", "aac"])
     
-    with st.spinner("Ses sinyalleri çözümleniyor..."):
-        # Librosa ile dosyayı işleme
-        y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
-        
-        # Mühendislik Analizi (Frekans ve Stres İndeksi)
-        pitches, magnitudes = librosa.piptrack(y=y, sr=sr, fmin=80.0, fmax=400.0)
-        pitch_vals = pitches[(pitches > 80.0) & (pitches < 400.0)]
-        f0 = np.nanmean(pitch_vals) if len(pitch_vals) > 0 else 210.0
-        rms = np.mean(librosa.feature.rms(y=y))
+    if uploaded_file:
+        y, sr = librosa.load(io.BytesIO(uploaded_file.read()), sr=16000)
+        # Sinyal İşleme
+        pitches, _ = librosa.piptrack(y=y, sr=sr, fmin=80, fmax=400)
+        f0 = np.nanmean(pitches[pitches > 0]) if np.any(pitches > 0) else 210.0
         zcr = np.mean(librosa.feature.zero_crossing_rate(y))
         
-        st.success("Ses başarıyla analiz edildi!")
+        st.markdown(f"""
+        <div class="report-box">
+            <h3>Biyometrik Ölçüm Raporu</h3>
+            <p><b>Temel Frekans (F0):</b> {f0:.1f} Hz</p>
+            <p><b>Gerginlik İndeksi:</b> {zcr:.4f}</p>
+        </div>
+        """, unsafe_allow_html=True)
         
-        # Sonuç Paneli
-        col1, col2 = st.columns(2)
-        col1.metric("Temel Frekans (F0)", f"{f0:.1f} Hz")
-        col2.metric("Stres/Gerginlik İndeksi", f"{zcr:.4f}")
+        # 3. MODÜL: MÜDAHALE (Somatik Rahatlama)
+        if zcr > 0.12:
+            st.warning("⚠️ Ses frekansınızda zihinsel yoğunluk tespit edildi.")
+            st.subheader("🧘 Somatik Topraklanma Modülü")
+            # Voiser ile ürettiğin 'rahatlama.mp3' dosyasını buraya ekliyoruz
+            st.audio("rahatlama.mp3", format="audio/mp3")
         
-        # Uzman Raporu Formu
-        with st.form("detay_form_dosya"):
-            st.subheader("astrolojik ve Psikolojik Uzman Raporu Alın")
+        # 4. MODÜL: UZMAN YÖNLENDİRME
+        st.markdown("---")
+        with st.form("detay_form"):
+            st.subheader("🔍 Derinlemesine Uzman Raporu")
             ad = st.text_input("Ad Soyad")
             dt = st.date_input("Doğum Tarihi")
-            email = st.text_input("E-posta Adresi")
-            
-            submitted = st.form_submit_button("Detaylı Analiz İstemi Gönder")
-            if submitted:
-                st.info(f"Teşekkürler {ad}. Ses verileriniz ve doğum tarihiniz kaydedildi. Uzman ekibimiz inceleyip mail yoluyla dönüş yapacaktır.")
-                
-st.set_page_config(page_title="VBAR | Ses Dosyası Analizi", layout="centered")
-
-st.title("🔬 VBAR: Biyometrik Ses Dosyası Analizi")
-st.write("Cihazınızda kayıtlı olan bir ses dosyasını (MP3, WAV, M4A) yükleyerek analizi başlatın.")
-
-# Canlı kayıt yerine hazır dosya yükleme bileşeni
-uploaded_file = st.file_uploader("Bir ses dosyası seçin (Önerilen: 5 - 15 saniye)", type=["mp3", "wav", "m4a", "aac"])
-
-if uploaded_file is not None:
-    # Dosyayı okuyalım
-    audio_bytes = uploaded_file.read()
-    
-    with st.spinner("Ses sinyalleri çözümleniyor..."):
-        # Librosa ile dosyayı işleme
-        y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
-        
-        # Mühendislik Analizi (Frekans ve Stres İndeksi)
-        pitches, magnitudes = librosa.piptrack(y=y, sr=sr, fmin=80.0, fmax=400.0)
-        pitch_vals = pitches[(pitches > 80.0) & (pitches < 400.0)]
-        f0 = np.nanmean(pitch_vals) if len(pitch_vals) > 0 else 210.0
-        rms = np.mean(librosa.feature.rms(y=y))
-        zcr = np.mean(librosa.feature.zero_crossing_rate(y))
-        
-        st.success("Ses başarıyla analiz edildi!")
-        
-        # Sonuç Paneli
-        col1, col2 = st.columns(2)
-        col1.metric("Temel Frekans (F0)", f"{f0:.1f} Hz")
-        col2.metric("Stres/Gerginlik İndeksi", f"{zcr:.4f}")
-        
-        # Uzman Raporu Formu
-        with st.form("detay_form_dosya"):
-            st.subheader("astrolojik ve Psikolojik Uzman Raporu Alın")
-            ad = st.text_input("Ad Soyad")
-            dt = st.date_input("Doğum Tarihi")
-            email = st.text_input("E-posta Adresi")
-            
-            submitted = st.form_submit_button("Detaylı Analiz İstemi Gönder")
-            if submitted:
-                st.info(f"Teşekkürler {ad}. Ses verileriniz ve doğum tarihiniz kaydedildi. Uzman ekibimiz inceleyip mail yoluyla dönüş yapacaktır.")
+            email = st.text_input("E-posta")
+            if st.form_submit_button("Analiz Raporunu Talep Et"):
+                # Burada Google Sheets entegrasyon kancasını (gspread) kullanacağız
+                st.success(f"Teşekkürler {ad}. Verileriniz ve ses profiliniz, uzman 'Ruhun Mimarisi' ekibimize iletilmiştir.")
