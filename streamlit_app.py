@@ -33,7 +33,6 @@ st.markdown("""
         color: #4a4a4a;
         margin-bottom: 20px;
     }
-    /* Buton ve form estetiği */
     .stButton>button {
         background-color: #1b263b;
         color: #ffffff;
@@ -141,18 +140,25 @@ with tab1:
             else:
                 st.success("✅ Enerjiniz dengeli ve akışta.")
 
-    # 3. ADIM: E-POSTA GÖNDERME
+    # 3. ADIM: E-POSTA GÖNDERME (Doğum Tarihi ve Saati Eklendi)
     st.markdown("---")
     st.subheader("📩 Uzman Raporu Talep Et")
     with st.form("iletisim_formu"):
         ad_soyad = st.text_input("Adınız Soyadınız")
         kullanici_mail = st.text_input("E-posta Adresiniz")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            dogum_tarihi = st.date_input("Doğum Tarihiniz")
+        with col2:
+            dogum_saati = st.text_input("Doğum Saati (Örn: 14:30)")
+            
         submitted = st.form_submit_button("Raporu Hazırla")
         
         if submitted:
             if ad_soyad and kullanici_mail:
                 konu = f"VBAR Analiz Talebi - {ad_soyad}"
-                govde = f"Ad Soyad: {ad_soyad}\nE-posta: {kullanici_mail}\n\nÖlçüm Sonuçları:\n- F0: {st.session_state.f0_val:.1f} Hz\n- Gerginlik: {st.session_state.zcr_val:.4f}"
+                govde = f"Ad Soyad: {ad_soyad}\nE-posta: {kullanici_mail}\nDoğum Tarihi: {dogum_tarihi}\nDoğum Saati: {dogum_saati}\n\nÖlçüm Sonuçları:\n- F0: {st.session_state.f0_val:.1f} Hz\n- Gerginlik: {st.session_state.zcr_val:.4f}"
                 mailto_link = f"mailto:ruhunnmimarisi@gmail.com?subject={urllib.parse.quote(konu)}&body={urllib.parse.quote(govde)}"
                 st.markdown(f'<a href="{mailto_link}" target="_blank" style="display:inline-block;background:#1b263b;color:#fff;padding:10px 20px;border-radius:8px;font-weight:bold;text-decoration:none;margin-top:10px;">📬 E-Posta Uygulamasını Aç ve Gönder</a>', unsafe_allow_html=True)
             else:
