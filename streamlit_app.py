@@ -5,6 +5,7 @@ import io
 import random
 import google.generativeai as genai
 
+# --- API VE MODEL BAĞLANTISI ---
 try:
     api_key = st.secrets["GEMINI_API_KEY"]
     genai.configure(api_key=api_key)
@@ -12,68 +13,142 @@ try:
 except Exception:
     AI_READY = False
 
-st.set_page_config(page_title="VBAR | Net Ses Analitiği", page_icon="⚡", layout="centered")
+# --- SAYFA AYARLARI ---
+st.set_page_config(page_title="VBAR | Akıllı Ses Analitiği", page_icon="⚡", layout="centered")
 
+# --- GELİŞMİŞ VE OKUNABİLİR MİSTİK/TEKNİK CSS ---
 st.markdown("""
 <style>
-    .stApp { background: linear-gradient(135deg, #1f1c2c 0%, #928dab 100%); color: #ffffff; font-family: 'Helvetica Neue', sans-serif; }
-    #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
+    /* Arka Plan */
+    .stApp {
+        background: linear-gradient(135deg, #181124 0%, #2b1b3a 50%, #120919 100%);
+        color: #f1f1f1;
+        font-family: 'Inter', sans-serif;
+    }
     
+    #MainMenu, footer, header {visibility: hidden;}
+
+    /* TÜM YAZI VE ETİKETLERİ GÖRÜNÜR YAP */
+    label, .stMarkdown, p, span, div {
+        color: #fce4ec !important;
+    }
+
+    /* Karşılama Kartı */
     .hero-box {
-        background: rgba(0, 0, 0, 0.4);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        padding: 30px; border-radius: 20px; text-align: center; margin-bottom: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 215, 0, 0.3);
+        padding: 25px;
+        border-radius: 24px;
+        text-align: center;
+        margin-bottom: 25px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
+    
+    .hero-title {
+        color: #ffd700 !important;
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    /* Ana Buton */
     div.stButton > button {
-        background: #ff4757 !important; color: white !important; border-radius: 30px !important;
-        font-weight: bold !important; width: 100%; border: none !important; padding: 12px;
+        background: linear-gradient(135deg, #ffd700 0%, #ffa000 100%) !important;
+        color: #120919 !important;
+        border-radius: 40px !important;
+        padding: 12px 20px !important;
+        border: none !important;
+        font-weight: 700 !important;
+        font-size: 1rem !important;
+        width: 100%;
+        box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
     }
-    .result-box {
-        background: rgba(0, 0, 0, 0.5); border-left: 5px solid #ff4757;
-        padding: 20px; border-radius: 12px; margin-top: 15px;
+    
+    div.stButton > button:hover {
+        background: linear-gradient(135deg, #ffea79 0%, #ffb300 100%) !important;
+        transform: translateY(-2px);
+    }
+
+    /* Sonuç Kartı */
+    .result-card {
+        background: rgba(255, 255, 255, 0.07);
+        backdrop-filter: blur(12px);
+        border-left: 4px solid #ffd700;
+        border-radius: 16px;
+        padding: 18px;
+        margin-top: 15px;
+        margin-bottom: 10px;
+    }
+    
+    .metrics-header {
+        color: #ffd700 !important;
+        font-weight: bold;
+        font-size: 1.05rem;
+        margin-bottom: 8px;
     }
 </style>
 """, unsafe_allow_html=True)
 
 if "history" not in st.session_state: st.session_state.history = []
 
+# --- DİNAMİK YEDEK YORUM MOTORU (API YOKSA BİLE ASLA TEKRAR ETMEDAN YAZAR) ---
+def generate_dynamic_analysis(pitch, rms):
+    if pitch < 180:
+        durum = "Derin, oturmuş ve kararlı bir ses yapısı."
+        tavsiye = "Zihinsel netliğiniz yüksek, odağınızı koruyarak kararlarınızı hayata geçirebilirsiniz."
+    elif pitch < 350:
+        durum = "Dengeli, ritmik ve akıcı bir frekans aralığı."
+        tavsiye = "İletişim gücünüzün ve ifade kabiliyetinizin öne çıktığı bir an."
+    else:
+        durum = "Yüksek dinamizme ve yoğun bir efora işaret eden frekans."
+        tavsiye = "Zihninizi biraz dinlendirmek ve nefes ritminize odaklanmak dengenizi tazeleyecektir."
+        
+    enerji_durumu = "Enerji ivmeniz oldukça belirgin." if rms > 0.05 else "Enerji akışınız sakin ve içsel bir seyirde."
+    
+    return f"{durum} {enerji_durumu} {tavsiye}"
+
+# --- UYGULAMA AKIŞI ---
+
 st.markdown("""
 <div class="hero-box">
-    <h2>⚡ VBAR Ses ve Enerji Analitiği</h2>
-    <p>Ezberlenmiş kalıplar yok; doğrudan ses dalgalarının frekans analizi ve gerçek zamanlı metrikler var.</p>
+    <div class="hero-title">⚡ VBAR Biyometrik Ses & Frekans Analizi</div>
+    <div style="font-size: 0.95rem; opacity: 0.9;">Sesinizin frekans ve enerji parametreleri gerçek zamanlı taranır.</div>
 </div>
 """, unsafe_allow_html=True)
 
-audio_input = st.audio_input("🎙️ Ses kaydını başlat ve analiz et")
+# Görünür Başlık
+st.markdown("<p style='font-weight: 600; font-size: 1.1rem; color: #ffd700 !important; margin-bottom: 5px;'>🎙️ Analiz İçin Sesinizi Kaydedin:</p>", unsafe_allow_html=True)
+audio_input = st.audio_input("")
 
 if audio_input:
-    if st.button("🚀 Analizi Çalıştır"):
-        with st.spinner("Ses verileri işleniyor..."):
+    st.write("")
+    if st.button("🚀 Ses Analizini Başlat", key="btn_run"):
+        with st.spinner("Ses verileriniz işleniyor..."):
             audio_bytes = audio_input.read()
             y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
             rms = float(np.mean(librosa.feature.rms(y=y)))
             pitches, _ = librosa.piptrack(y=y, sr=sr)
             mean_pitch = float(np.mean(pitches[pitches > 0])) if len(pitches[pitches > 0]) > 0 else 150.0
             
-            # Gemini ile daha akıllı, teknik ve net bir yorum
             yorum = ""
             if AI_READY:
                 try:
                     model = genai.GenerativeModel('gemini-1.5-flash')
                     prompt = f"""
-                    Ses analizi yapıldı:
-                    - Pitch (Frekans): {mean_pitch:.1f} Hz
-                    - RMS (Enerji): {rms:.4f}
+                    Kullanıcının ses analizi sonuçları:
+                    - Temel Frekans (Pitch): {mean_pitch:.1f} Hz
+                    - Ses Enerjisi (RMS): {rms:.4f}
                     
-                    GÖREVİN: 
-                    Asla "içindeki pusula, evrenin akışı" gibi klişe laflar etme. Keslikle bu ses frekansının ve enerji seviyesinin o anki zihinsel/fiziksel yorgunluk, stres veya kararlılık durumunu ne kadar yansıttığını net, analitik, dürüst ve akıcı bir dille yorumla.
+                    GÖREVİN:
+                    Ezberlenmiş, jenerik kalıplardan uzak dur. Bu sesin temel frekansı ve enerjisine dayanarak kişinin zihinsel odaklanma, sakinlik veya efor durumunu 2-3 cümlelik somut, akıcı ve özgün bir dille yorumla.
                     """
                     resp = model.generate_content(prompt)
                     yorum = resp.text.strip()
-                except:
-                    yorum = "Ses frekansın yüksek bir efor sergilediğini, enerji dağılımının ise odaklanma gerektirdiğini gösteriyor."
+                except Exception:
+                    yorum = generate_dynamic_analysis(mean_pitch, rms)
             else:
-                yorum = "Ses frekansın yüksek bir efor sergilediğini gösteriyor."
+                yorum = generate_dynamic_analysis(mean_pitch, rms)
 
             kayit = {
                 "id": random.randint(1000, 9999),
@@ -84,19 +159,23 @@ if audio_input:
             st.session_state.history.append(kayit)
             st.rerun()
 
+# --- GEÇMİŞ LİSTELEME ---
 if st.session_state.history:
     st.markdown("---")
-    st.subheader("📊 Analiz Geçmişi")
+    st.markdown("<h3 style='color: #ffd700 !important;'>📊 Analiz Geçmişiniz</h3>", unsafe_allow_html=True)
     
     for i, item in enumerate(reversed(st.session_state.history)):
         idx = len(st.session_state.history) - 1 - i
+        
         st.markdown(f"""
-        <div class="result-box">
-            <b>Frekans:</b> {item['pitch']:.1f} Hz | <b>Enerji:</b> {item['rms']:.4f}<br><br>
-            <p>{item['yorum']}</p>
+        <div class="result-card">
+            <div class="metrics-header">Frekans: {item['pitch']:.1f} Hz | Enerji: {item['rms']:.4f}</div>
+            <p style="margin: 0; line-height: 1.5;">{item['yorum']}</p>
         </div>
         """, unsafe_allow_html=True)
         
-        if st.button(f"🗑️ Bu Kaydı Sil #{item['id']}", key=f"del_{item['id']}"):
-            st.session_state.history.pop(idx)
-            st.rerun()
+        col1, col2 = st.columns([3, 1])
+        with col2:
+            if st.button(f"🗑️ Kaydı Sil", key=f"del_{item['id']}"):
+                st.session_state.history.pop(idx)
+                st.rerun()
