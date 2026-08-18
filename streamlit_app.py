@@ -94,10 +94,15 @@ with tab2:
     * **Haftalık Aritmetik Ortalama:** Tüm duygu durum ve gerilim dalgalanmalarınız zaman akışında toplanarak haftalık gerçek ortalamanızı belirler.
     """)
 
-# Durum yönetimi başlatma
+# Durum yönetimi ve veri uyumluluk koruması
 if "f0_val" not in st.session_state: st.session_state.f0_val = 0.0
 if "gerilim_val" not in st.session_state: st.session_state.gerilim_val = 0.0
 if "olcum_gecmisi" not in st.session_state: st.session_state.olcum_gecmisi = []
+
+# Eski key formatından kalma bir hata olmasın diye anahtar dönüştürücü
+for kayit in st.session_state.olcum_gecmisi:
+    if 'gerilim' not in kayit and 'zcr' in kayit:
+        kayit['gerilim'] = kayit['zcr'] * 50  # Eski ölçeği yeniye uyarla
 
 with tab3:
     st.subheader("📜 Zaman Akışı ve Haftalık Aritmetik Ortalama Arşivi")
@@ -109,14 +114,17 @@ with tab3:
         simdi_dt = datetime.now()
         yedi_gun_once = simdi_dt - timedelta(days=7)
         
-        haftalik_kayitlar = [
-            k for k in st.session_state.olcum_gecmisi 
-            if datetime.strptime(k['zaman'], "%d.%m.%Y %H:%M") >= yedi_gun_once
-        ]
+        haftalik_kayitlar = []
+        for k in st.session_state.olcum_gecmisi:
+            try:
+                if datetime.strptime(k['zaman'], "%d.%m.%Y %H:%M") >= yedi_gun_once:
+                    haftalik_kayitlar.append(k)
+            except:
+                pass
         
         if haftalik_kayitlar:
-            ort_f0 = np.mean([k['f0'] for k in haftalik_kayitlar])
-            ort_gerilim = np.mean([k['gerilim'] for k in haftalik_kayitlar])
+            ort_f0 = np.mean([k.get('f0', 210.0) for k in haftalik_kayitlar])
+            ort_gerilim = np.mean([k.get('gerilim', 0.0) for k in haftalik_kayitlar])
             
             st.markdown("### 📈 Son 7 Günlük Gelişmiş Akustik Özet")
             st.markdown(f"""
@@ -140,10 +148,12 @@ with tab3:
                 st.rerun()
 
         for idx, kayit in enumerate(reversed(st.session_state.olcum_gecmisi), 1):
+            f0_goster = kayit.get('f0', 0.0)
+            gerilim_goster = kayit.get('gerilim', 0.0)
             st.markdown(f"""
             <div class="history-card">
-                <b>Ölçüm #{len(st.session_state.olcum_gecmisi) - idx + 1}</b> — <i>{kayit['zaman']}</i><br>
-                🔹 <b>Temel Frekans (F0):</b> {kayit['f0']:.1f} Hz | ⚡ <b>Gerilim İndeksi:</b> {kayit['gerilim']:.2f}
+                <b>Ölçüm #{len(st.session_state.olcum_gecmisi) - idx + 1}</b> — <i>{kayit.get('zaman', 'Bilinmiyor')}</i><br>
+                🔹 <b>Temel Frekans (F0):</b> {f0_goster:.1f} Hz | ⚡ <b>Gerilim İndeksi:</b> {gerilim_goster:.2f}
             </div>
             """, unsafe_allow_html=True)
 
@@ -176,19 +186,14 @@ with tab1:
                 if rms_enerji_kontrol < 0.01:
                     st.error("⚠️ Yetersiz ses algılandı! Lütfen mikrofonunuza yaklaşarak net bir şekilde konuşun.")
                 else:
-                    # Gürültü azaltma
                     y_denoised = nr.reduce_noise(y=y, sr=sr, prop_decrease=0.7)
                     
-                    # 1. Temel Frekans (F0)
                     pitches, _ = librosa.piptrack(y=y_denoised, sr=sr, fmin=80, fmax=400)
                     anlik_f0 = float(np.nanmean(pitches[pitches > 0])) if np.any(pitches > 0) else 210.0
                     
-                    # 2. Gelişmiş Mühendislik Metrikleri (RMS Enerji + Spektral Ağırlık / Centroid)
                     rms_val = np.mean(librosa.feature.rms(y=y_denoised))
                     spectral_centroid = np.mean(librosa.feature.spectral_centroid(y=y_denoised, sr=sr))
                     
-                    # Öfke ve gerginlik anlarında spektral merkez yukarı kayar ve enerji artar
-                    # Bu formül sesin sertliğini, dinamik patlamalarını ve frekans yükselmesini doğrudan yakalar
                     gelismis_gerilim = float((rms_val * 50) + (spectral_centroid / 400))
                     
                     st.session_state.f0_val = anlik_f0
@@ -210,8 +215,7 @@ with tab1:
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    # Kıyaslama
-                    tum_gerilimler = [k['gerilim'] for k in st.session_state.olcum_gecmisi]
+                    tum_gerilimler = [k.get('gerilim', 0.0) for k in st.session_state.olcum_gecmisi]
                     genel_ortalama_gerilim = np.mean(tum_gerilimler)
                     
                     if st.session_state.gerilim_val > (genel_ortalama_gerilim * 1.15):
