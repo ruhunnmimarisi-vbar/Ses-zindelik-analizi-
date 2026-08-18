@@ -48,7 +48,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 1. GÖRSEL BANNER (GitHub'daki görselinin adı)
+# 1. GÖRSEL BANNER (GitHub'daki amblemin)
 if os.path.exists("1783526207831.png"):
     st.image("1783526207831.png", use_container_width=True)
 else:
@@ -163,3 +163,4 @@ with tab1:
                 st.markdown(f'<a href="{mailto_link}" target="_blank" style="display:inline-block;background:#1b263b;color:#fff;padding:10px 20px;border-radius:8px;font-weight:bold;text-decoration:none;margin-top:10px;">📬 E-Posta Uygulamasını Aç ve Gönder</a>', unsafe_allow_html=True)
             else:
                 st.error("Lütfen adınızı ve e-posta adresinizi eksiksiz doldurun.")
+                
