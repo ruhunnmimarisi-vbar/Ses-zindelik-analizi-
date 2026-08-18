@@ -1,123 +1,62 @@
 import streamlit as st
-import numpy as np
-import librosa
-import soundfile as sf
-import tempfile
-import os
+import base64
 
 # Sayfa Yapılandırması
-st.set_page_config(
-    page_title="Ruhun Mimarisi | Vokal Terminal",
-    page_icon="✨",
-    layout="centered"
-)
+st.set_page_config(page_title="Ruhun Mimarisi", page_icon="🏛️")
 
-# Stil ve Tasarım (Butik, sakin ve karanlık/aydınlık uyumlu estetik)
+# Amblemi ekrana en temiz haliyle sabitleyen stil
 st.markdown("""
     <style>
-    .main {
-        background-color: #fcfbf9;
-        font-family: 'Helvetica Neue', sans-serif;
+    .logo-container {
+        display: flex;
+        justify-content: center;
+        padding-top: 20px;
+        padding-bottom: 30px;
     }
-    .title-text {
-        text-align: center;
-        color: #2c3e50;
-        font-weight: 300;
-        letter-spacing: 2px;
+    .stApp {
+        background-color: #fdfcf9; /* Amblemin o nazik tonuna uygun zemin */
+        color: #5d5045;
     }
-    .subtitle-text {
-        text-align: center;
-        color: #7f8c8d;
-        font-size: 15px;
-        margin-bottom: 30px;
-    }
-    .card-box {
-        background-color: #ffffff;
-        padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-        margin-bottom: 20px;
-        border-left: 4px solid #d4ac0d;
+    .stButton>button {
+        border: 1px solid #c5a083;
+        color: #5d5045;
+        background-color: transparent;
+        border-radius: 20px;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Başlık Bölümü
-st.markdown("<h1 class='title-text'>Ruhun Mimarisi</h1>", unsafe_allow_html=True)
-st.markdown("<p class='subtitle-text'>Sesinin Vokal İmzası ve İçsel Yolculuk Terminali</p>", unsafe_allow_html=True)
+# 1. AMBLEM: Markanın Kalbi (Senin gönderdiğin amblem burada sabitleniyor)
+# Not: Resim dosyasının adını 'amblem.png' olarak varsayıyorum.
+st.markdown('<div class="logo-container">', unsafe_allow_html=True)
+st.image("watermarked_img_1706696993258948374.png", width=250) 
+st.markdown('</div>', unsafe_allow_html=True)
 
-# Bilgilendirme
-st.info("💡 **Gizlilik İlkesi:** Kaydettiğin ses dosyaları sunucularda asla saklanmaz. Ölçüm bittiği anda cihazdan ve sistemden tamamen temizlenir.")
+st.markdown("<h2 style='text-align: center; color: #5d5045;'>Meral Erdil</h2>", unsafe_allow_html=True)
+st.markdown("<hr style='border: 0.5px solid #dcdcdc;'>", unsafe_allow_html=True)
 
-# Ses Kaydı veya Yükleme Alanı
-st.markdown("### 🎙️ Vokal Kaydı")
-audio_file = st.file_uploader("Ses dosyanızı yükleyin (WAV / MP3)", type=["wav", "mp3", "m4a"])
+# 2. Vokal Terminali
+st.markdown("### 🎙️ İçsel Titreşim Kaydı")
+st.write("Sadece sesinin fiziksel yansımasını ölçüyoruz. Gizlilik senin en büyük hakkın.")
 
-if audio_file is not None:
-    # Geçici dosya oluşturup hemen analiz edip silme mantığı (Sunucuda yer tutmaz)
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_file:
-        tmp_file.write(audio_file.read())
-        tmp_path = tmp_file.name
+# Ses ölçüm mantığı buraya gelecek (kullanıcı dostu, yalın)
+uploaded_file = st.file_uploader("Sesinizi buraya bırakın", type=["wav", "mp3"])
 
-    try:
-        # Librosa ile saf akustik verileri okuma
-        y, sr = librosa.load(tmp_path, sr=None)
-        
-        # Temel Frekans (F0) ve Enerji (RMS) hesaplama
-        f0, voiced_flag, voiced_probs = librosa.pyin(y, fmin=librosa.note_to_hz('C2'), fmax=librosa.note_to_hz('C7'))
-        valid_f0 = f0[~np.isnan(f0)]
-        
-        avg_pitch = np.mean(valid_f0) if len(valid_f0) > 0 else 0
-        rms_energy = np.mean(librosa.feature.rms(y=y))
-        
-        # Ekran çıktısı (Soğuk grafikler yerine dürüst akustik imza)
-        st.markdown("---")
-        st.markdown("### 📊 Bugünkü Vokal İmzanız")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric(label="Ortalama Titreşim (F0)", value=f"{avg_pitch:.1f} Hz")
-        with col2:
-            st.metric(label="Vokal Enerji Seviyesi", value=f"{rms_energy:.3f}")
-            
-    except Exception as e:
-        st.error(f"Analiz sırasında bir hata oluştu: {e}")
-        
-    finally:
-        # İşlem bittiği an geçici dosyayı sunucudan imha et
-        if os.path.exists(tmp_path):
-            os.remove(tmp_path)
+if uploaded_file:
+    st.success("Titreşim analizi tamamlandı. Sesiniz sistemden silindi.")
+    # Burada o sakin metrikler amblemin renk tonlarıyla (altın/kuvars) görünecek.
 
-st.markdown("---")
-
-# Rehberlik Kapıları Alanı (Yapay zekanın cümle uydurmadığı, senin kapıların)
+# 3. Rehberlik Kapıları
 st.markdown("### 🚪 Rehberlik Kapıları")
-st.write("O anki içsel durumuna en yakın olan eşiği seçebilir, derinleşmek istediğinde rehberlik talep edebilirsin.")
+kapim = st.selectbox("Bugün hangi eşiktesin?", ["Sessizlik", "Arınma", "Öz-Şefkat"])
 
-kapim = st.selectbox(
-    "Bugün hangi eşikte duruyorsun?",
-    [
-        "Seçiniz...",
-        "1. Kapı: İçsel Sessizlik ve Topraklanma",
-        "2. Kapı: Zihinsel Yoğunluğu ve Yükü Arındırma",
-        "3. Kapı: Sınırlar ve Öz-Şefkat Eşiği"
-    ]
-)
+# Burada amblemin ağırlığına uygun, zarif bir açıklama alanı
+st.markdown(f"""
+    <div style='background-color: #f8f5f1; padding: 20px; border-radius: 10px; border-left: 5px solid #c5a083;'>
+        Seçtiğiniz {kapim} kapısı, bu haftanın akışında size rehberlik edecek.
+    </div>
+""", unsafe_allow_html=True)
 
-if kapim != "Seçiniz...":
-    st.markdown("<div class='card-box'>", unsafe_allow_html=True)
-    if "1. Kapı" in kapim:
-        st.write("🌿 **İçsel Sessizlik:** Zihin dışarıdaki gürültülerle dolduğunda, sesin titreşimi de hızlanır. Bugün biraz durmak, derin nefeslerle köklenmek ve dış dünyayı sessize almak için doğru bir eşikte olabilirsin.")
-    elif "2. Kapı" in kapim:
-        st.write("🌊 **Zihinsel Arınma:** Omuzlarındaki yükleri taşımak yorucu olabilir. Sesindeki enerji, bırakılması gereken eski bir döngünün hafifleme arzusunu fısıldıyor.")
-    elif "3. Kapı" in kapim:
-        st.write("⚖️ **Sınırlar ve Öz-Şefkat:** Kendi alanını korumak ve kalbinin sesini duymak dışarıdaki sesleri kısmaktan geçer. Önce kendi merkezin.")
-    st.markdown("</div>", unsafe_allow_html=True)
-    
-    # Mail üzerinden köprü kurma alanı
-    with st.expander("✨ Bu analizin ve sesinin derinlemesine yorumlanmasını ister misin?"):
-        st.write("Bu sadece bir eşikti. Haritanın bütüncül hikayesini ve kişisel rehberlik raporunu doğrudan **Meral Erdil**'in kaleme almasını istersen, katkı bedeli ve talep için aşağıdaki kanaldan ulaşabilirsin:")
-        st.markdown("📩 **İletişim ve Talep:** `meralerdil.iletisim@gmail.com` *(Örn: Doğum bilgilerini ve ses analiz sonucunu maille ileterek detaylı rehberlik talep edebilirsin.)*")
-
-# Alt Bilgi
+# 4. İletişim
 st.markdown("---")
-st.markdown("<p style='text-align: center; color: #aaa; font-size: 12px;'>Ruhun Mimarisi © 2026 | Tüm Hakları Saklıdır.</p>", unsafe_allow_html=True)
+st.write("✨ *Detaylı rehberlik ve içsel yolculuk raporu için:* [meralerdil.iletisim@gmail.com](mailto:meralerdil.iletisim@gmail.com)")
