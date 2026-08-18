@@ -8,7 +8,7 @@ import tempfile
 st.set_page_config(page_title="Ruhun Mimarisi", page_icon="🏛️")
 
 # Görsel ve Başlık Düzeni
-st.image("1783526207831.png", use_column_width=True)
+st.image("1783526207831.png")
 
 st.markdown("<h1 style='text-align: center;'>Vokal Terminali</h1>", unsafe_allow_html=True)
 
