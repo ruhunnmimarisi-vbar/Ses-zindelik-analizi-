@@ -1,160 +1,123 @@
 import streamlit as st
-import librosa
 import numpy as np
-import io
+import librosa
+import soundfile as sf
+import tempfile
 import os
-import urllib.parse
-import noisereduce as nr
 
-# --- SAYFA YAPILANDIRMASI ---
-st.set_page_config(page_title="Ruhun Mimarisi | VBAR Biyometrik Analiz", layout="centered", page_icon="🔬")
+# Sayfa Yapılandırması
+st.set_page_config(
+    page_title="Ruhun Mimarisi | Vokal Terminal",
+    page_icon="✨",
+    layout="centered"
+)
 
-# ŞIK VE KURUMSAL ARAYÜZ STİLLERİ (Sıcak Tonlar, Krem & Altın & Lacivert)
+# Stil ve Tasarım (Butik, sakin ve karanlık/aydınlık uyumlu estetik)
 st.markdown("""
-<style>
-    .stApp {
-        background-color: #fcfbfa;
-        color: #2c2c2c;
+    <style>
+    .main {
+        background-color: #fcfbf9;
+        font-family: 'Helvetica Neue', sans-serif;
     }
-    .report-box {
-        border: 1px solid #d4af37;
-        padding: 20px;
+    .title-text {
+        text-align: center;
+        color: #2c3e50;
+        font-weight: 300;
+        letter-spacing: 2px;
+    }
+    .subtitle-text {
+        text-align: center;
+        color: #7f8c8d;
+        font-size: 15px;
+        margin-bottom: 30px;
+    }
+    .card-box {
+        background-color: #ffffff;
+        padding: 25px;
         border-radius: 12px;
-        background: #ffffff;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        margin-top: 15px;
-    }
-    .welcome-card {
-        background: #fff8e8;
-        border-left: 4px solid #d4af37;
-        padding: 15px;
-        border-radius: 8px;
-        font-style: italic;
-        color: #4a4a4a;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
         margin-bottom: 20px;
+        border-left: 4px solid #d4ac0d;
     }
-    .stButton>button {
-        background-color: #1b263b;
-        color: #ffffff;
-        border-radius: 8px;
-        border: none;
-        font-weight: bold;
-        padding: 10px 20px;
-    }
-    .stButton>button:hover {
-        background-color: #d4af37;
-        color: #000000;
-    }
-</style>
+    </style>
 """, unsafe_allow_html=True)
 
-# 1. GÖRSEL BANNER (GitHub'daki görselinin adı)
-if os.path.exists("1783526207831.png"):
-    st.image("1783526207831.png", use_container_width=True)
-else:
-    st.title("🔬 Ruhun Mimarisi | VBAR Terminali")
+# Başlık Bölümü
+st.markdown("<h1 class='title-text'>Ruhun Mimarisi</h1>", unsafe_allow_html=True)
+st.markdown("<p class='subtitle-text'>Sesinin Vokal İmzası ve İçsel Yolculuk Terminali</p>", unsafe_allow_html=True)
 
-# KARŞILAMA VE VİZYON
-st.markdown("""
-<div class="welcome-card">
-    "Sesiniz; zihninizin, duygularınızın ve sinir sistemi durumunuzun en saf fiziksel imzasıdır." 
-    Bu terminal, biyometrik verilerinizi bilimsel temellerle harmanlayarak içsel dengenizi keşfetmeniz için tasarlanmıştır.
-</div>
-""", unsafe_allow_html=True)
+# Bilgilendirme
+st.info("💡 **Gizlilik İlkesi:** Kaydettiğin ses dosyaları sunucularda asla saklanmaz. Ölçüm bittiği anda cihazdan ve sistemden tamamen temizlenir.")
 
-# SEKME TANIMLAMALARI (Hatanın kaynağı olan eksik tanım buradaydı)
-tab1, tab2 = st.tabs(["🔬 Biyometrik Analiz", "📖 Bilimsel Altyapı & Hakkında"])
+# Ses Kaydı veya Yükleme Alanı
+st.markdown("### 🎙️ Vokal Kaydı")
+audio_file = st.file_uploader("Ses dosyanızı yükleyin (WAV / MP3)", type=["wav", "mp3", "m4a"])
 
-with tab2:
-    st.subheader("Ruhun Mimarisi ve VBAR Nedir?")
-    st.write("""
-    **VBAR (Voice-Based Assessment & Regulation)**, insan sesindeki akustik mikro titreşimleri analiz ederek sinir sisteminin o anki yükünü ve gerilim seviyesini objektif bir şekilde ölçen yenilikçi bir araçtır.
-    """)
-    
-    st.markdown("### 🧬 Bilimsel Arka Plan")
-    st.markdown("""
-    * **Akustik Biyometri:** Ses tellerinin çalışması, solunum mekaniği ve merkezi sinir sistemi birbirleriyle doğrudan etkileşim içerisindedir. Konuşma sırasında ortaya çıkan mikro değişimler, bireyin zihinsel eforunu ve stres yükünü ele verir.
-    * **Temel Frekans ($F_0$):** Vokal kıvrımların saniyedeki titreşim hızıdır. Kişinin anlık zihinsel enerjisini ve vokal irtifasını yansıtır.
-    * **Gerginlik İndeksi (ZCR):** Ses dalgalarındaki ani değişim ve pürüzlülük oranlarını inceleyerek sinir sistemindeki o anki eforu ve baskıyı matematiksel olarak ortaya koyar.
-    """)
-    
-    st.markdown("### 🧭 Nasıl Kullanılır?")
-    st.markdown("""
-    1. **Ses Girişi:** Mikrofon yardımıyla 5-10 saniyelik doğal bir ses kaydı gerçekleştirilir.
-    2. **Gürültü Filtreleme:** Sistem, ortamdaki arka plan gürültülerini gelişmiş algoritmalarla temizleyerek saf vokal imzayı izole eder.
-    3. **Ölçüm ve Dengeleme:** Rapor saniyeler içinde oluşturulur. Eğer gerginlik eşiği aşılırsa, sistem somatik rahatlama akışını ve dinlendirici frekansları otomatik olarak devreye sokar.
-    """)
+if audio_file is not None:
+    # Geçici dosya oluşturup hemen analiz edip silme mantığı (Sunucuda yer tutmaz)
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_file:
+        tmp_file.write(audio_file.read())
+        tmp_path = tmp_file.name
 
-with tab1:
-    # 1. ADIM: SES VERİSİ GİRİŞİ
-    st.subheader("1. Aşama: Ses Verisi Girişi")
-    upload_option = st.radio("Ses Verisi Sağlama Yöntemi:", ["Mikrofon ile Kayıt Yap", "Ses Dosyası Yükle (.mp3, .wav)"])
-
-    audio_bytes = None
-
-    if upload_option == "Mikrofon ile Kayıt Yap":
-        audio_file = st.audio_input("Lütfen 5-10 saniye boyunca konuşun")
-        if audio_file:
-            audio_bytes = audio_file.read()
-    else:
-        uploaded_file = st.file_uploader("Ses dosyanızı yükleyin", type=["mp3", "wav", "m4a"])
-        if uploaded_file:
-            audio_bytes = uploaded_file.read()
-
-    # Durum yönetimi
-    if "f0_val" not in st.session_state: st.session_state.f0_val = 0.0
-    if "zcr_val" not in st.session_state: st.session_state.zcr_val = 0.0
-
-    # 2. ADIM: ANALİZ VE GÜRÜLTÜ FİLTRELEME
-    if audio_bytes:
-        st.audio(audio_bytes, format="audio/mp3")
+    try:
+        # Librosa ile saf akustik verileri okuma
+        y, sr = librosa.load(tmp_path, sr=None)
         
-        if st.button("🚀 Gürültü Filtreli Analizi Başlat"):
-            with st.spinner("Sesiniz arındırılıyor ve biyometrik veriler analiz ediliyor..."):
-                y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
-                y_denoised = nr.reduce_noise(y=y, sr=sr, prop_decrease=0.7)
-                
-                pitches, _ = librosa.piptrack(y=y_denoised, sr=sr, fmin=80, fmax=400)
-                st.session_state.f0_val = float(np.nanmean(pitches[pitches > 0])) if np.any(pitches > 0) else 210.0
-                st.session_state.zcr_val = float(np.mean(librosa.feature.zero_crossing_rate(y_denoised)))
-            
-            st.markdown(f"""
-            <div class="report-box">
-                <h3 style="color: #1b263b; margin-top: 0;">Biyometrik Ölçüm Raporu (Arındırılmış)</h3>
-                <p><b>Temel Frekans (F0):</b> {st.session_state.f0_val:.1f} Hz</p>
-                <p><b>Gerginlik İndeksi:</b> {st.session_state.zcr_val:.4f}</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            if st.session_state.zcr_val > 0.12:
-                st.warning("⚠️ Zihinsel yoğunluk tespit edildi. Dinlendirici somatik akış başlatılıyor:")
-                if os.path.exists("rahatlama .mp3"):
-                    st.audio("rahatlama .mp3", format="audio/mp3")
-                else:
-                    st.info("💡 Rahatlama ses dosyası aranıyor...")
-            else:
-                st.success("✅ Enerjiniz dengeli ve akışta.")
-
-    # 3. ADIM: E-POSTA GÖNDERME
-    st.markdown("---")
-    st.subheader("📩 Uzman Raporu Talep Et")
-    with st.form("iletisim_formu"):
-        ad_soyad = st.text_input("Adınız Soyadınız")
-        kullanici_mail = st.text_input("E-posta Adresiniz")
+        # Temel Frekans (F0) ve Enerji (RMS) hesaplama
+        f0, voiced_flag, voiced_probs = librosa.pyin(y, fmin=librosa.note_to_hz('C2'), fmax=librosa.note_to_hz('C7'))
+        valid_f0 = f0[~np.isnan(f0)]
         
+        avg_pitch = np.mean(valid_f0) if len(valid_f0) > 0 else 0
+        rms_energy = np.mean(librosa.feature.rms(y=y))
+        
+        # Ekran çıktısı (Soğuk grafikler yerine dürüst akustik imza)
+        st.markdown("---")
+        st.markdown("### 📊 Bugünkü Vokal İmzanız")
         col1, col2 = st.columns(2)
         with col1:
-            dogum_tarihi = st.date_input("Doğum Tarihiniz")
+            st.metric(label="Ortalama Titreşim (F0)", value=f"{avg_pitch:.1f} Hz")
         with col2:
-            dogum_saati = st.text_input("Doğum Saati (Örn: 14:30)")
+            st.metric(label="Vokal Enerji Seviyesi", value=f"{rms_energy:.3f}")
             
-        submitted = st.form_submit_button("Raporu Hazırla")
+    except Exception as e:
+        st.error(f"Analiz sırasında bir hata oluştu: {e}")
         
-        if submitted:
-            if ad_soyad and kullanici_mail:
-                konu = f"VBAR Analiz Talebi - {ad_soyad}"
-                govde = f"Ad Soyad: {ad_soyad}\nE-posta: {kullanici_mail}\nDoğum Tarihi: {dogum_tarihi}\nDoğum Saati: {dogum_saati}\n\nÖlçüm Sonuçları:\n- F0: {st.session_state.f0_val:.1f} Hz\n- Gerginlik: {st.session_state.zcr_val:.4f}"
-                mailto_link = f"mailto:ruhunnmimarisi@gmail.com?subject={urllib.parse.quote(konu)}&body={urllib.parse.quote(govde)}"
-                st.markdown(f'<a href="{mailto_link}" target="_blank" style="display:inline-block;background:#1b263b;color:#fff;padding:10px 20px;border-radius:8px;font-weight:bold;text-decoration:none;margin-top:10px;">📬 E-Posta Uygulamasını Aç ve Gönder</a>', unsafe_allow_html=True)
-            else:
-                st.error("Lütfen adınızı ve e-posta adresinizi eksiksiz doldurun.")
+    finally:
+        # İşlem bittiği an geçici dosyayı sunucudan imha et
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+
+st.markdown("---")
+
+# Rehberlik Kapıları Alanı (Yapay zekanın cümle uydurmadığı, senin kapıların)
+st.markdown("### 🚪 Rehberlik Kapıları")
+st.write("O anki içsel durumuna en yakın olan eşiği seçebilir, derinleşmek istediğinde rehberlik talep edebilirsin.")
+
+kapim = st.selectbox(
+    "Bugün hangi eşikte duruyorsun?",
+    [
+        "Seçiniz...",
+        "1. Kapı: İçsel Sessizlik ve Topraklanma",
+        "2. Kapı: Zihinsel Yoğunluğu ve Yükü Arındırma",
+        "3. Kapı: Sınırlar ve Öz-Şefkat Eşiği"
+    ]
+)
+
+if kapim != "Seçiniz...":
+    st.markdown("<div class='card-box'>", unsafe_allow_html=True)
+    if "1. Kapı" in kapim:
+        st.write("🌿 **İçsel Sessizlik:** Zihin dışarıdaki gürültülerle dolduğunda, sesin titreşimi de hızlanır. Bugün biraz durmak, derin nefeslerle köklenmek ve dış dünyayı sessize almak için doğru bir eşikte olabilirsin.")
+    elif "2. Kapı" in kapim:
+        st.write("🌊 **Zihinsel Arınma:** Omuzlarındaki yükleri taşımak yorucu olabilir. Sesindeki enerji, bırakılması gereken eski bir döngünün hafifleme arzusunu fısıldıyor.")
+    elif "3. Kapı" in kapim:
+        st.write("⚖️ **Sınırlar ve Öz-Şefkat:** Kendi alanını korumak ve kalbinin sesini duymak dışarıdaki sesleri kısmaktan geçer. Önce kendi merkezin.")
+    st.markdown("</div>", unsafe_allow_html=True)
+    
+    # Mail üzerinden köprü kurma alanı
+    with st.expander("✨ Bu analizin ve sesinin derinlemesine yorumlanmasını ister misin?"):
+        st.write("Bu sadece bir eşikti. Haritanın bütüncül hikayesini ve kişisel rehberlik raporunu doğrudan **Meral Erdil**'in kaleme almasını istersen, katkı bedeli ve talep için aşağıdaki kanaldan ulaşabilirsin:")
+        st.markdown("📩 **İletişim ve Talep:** `meralerdil.iletisim@gmail.com` *(Örn: Doğum bilgilerini ve ses analiz sonucunu maille ileterek detaylı rehberlik talep edebilirsin.)*")
+
+# Alt Bilgi
+st.markdown("---")
+st.markdown("<p style='text-align: center; color: #aaa; font-size: 12px;'>Ruhun Mimarisi © 2026 | Tüm Hakları Saklıdır.</p>", unsafe_allow_html=True)
