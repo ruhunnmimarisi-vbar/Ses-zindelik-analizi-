@@ -140,27 +140,32 @@ with tab1:
             else:
                 st.success("✅ Enerjiniz dengeli ve akışta.")
 
-    # 3. ADIM: E-POSTA GÖNDERME (Doğum Tarihi ve Saati Eklendi)
+    # 3. ADIM: E-POSTA GÖNDERME (Gün, Ay, Yıl Seçimli Doğum Tarihi)
     st.markdown("---")
     st.subheader("📩 Uzman Raporu Talep Et")
     with st.form("iletisim_formu"):
         ad_soyad = st.text_input("Adınız Soyadınız")
         kullanici_mail = st.text_input("E-posta Adresiniz")
         
-        col1, col2 = st.columns(2)
-        with col1:
-            dogum_tarihi = st.date_input("Doğum Tarihiniz")
-        with col2:
-            dogum_saati = st.text_input("Doğum Saati (Örn: 14:30)")
+        st.markdown("<b>Doğum Tarihiniz:</b>", unsafe_allow_html=True)
+        col_g, col_a, col_y = st.columns(3)
+        with col_g:
+            dogum_gun = st.selectbox("Gün", list(range(1, 32)))
+        with col_a:
+            dogum_ay = st.selectbox("Ay", ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"])
+        with col_y:
+            dogum_yil = st.selectbox("Yıl", list(range(2024, 1930, -1)))
+            
+        dogum_saati = st.text_input("Doğum Saati (Örn: 14:30)")
             
         submitted = st.form_submit_button("Raporu Hazırla")
         
         if submitted:
             if ad_soyad and kullanici_mail:
+                dogum_tarihi_str = f"{dogum_gun} {dogum_ay} {dogum_yil}"
                 konu = f"VBAR Analiz Talebi - {ad_soyad}"
-                govde = f"Ad Soyad: {ad_soyad}\nE-posta: {kullanici_mail}\nDoğum Tarihi: {dogum_tarihi}\nDoğum Saati: {dogum_saati}\n\nÖlçüm Sonuçları:\n- F0: {st.session_state.f0_val:.1f} Hz\n- Gerginlik: {st.session_state.zcr_val:.4f}"
+                govde = f"Ad Soyad: {ad_soyad}\nE-posta: {kullanici_mail}\nDoğum Tarihi: {dogum_tarihi_str}\nDoğum Saati: {dogum_saati}\n\nÖlçüm Sonuçları:\n- F0: {st.session_state.f0_val:.1f} Hz\n- Gerginlik: {st.session_state.zcr_val:.4f}"
                 mailto_link = f"mailto:ruhunnmimarisi@gmail.com?subject={urllib.parse.quote(konu)}&body={urllib.parse.quote(govde)}"
                 st.markdown(f'<a href="{mailto_link}" target="_blank" style="display:inline-block;background:#1b263b;color:#fff;padding:10px 20px;border-radius:8px;font-weight:bold;text-decoration:none;margin-top:10px;">📬 E-Posta Uygulamasını Aç ve Gönder</a>', unsafe_allow_html=True)
             else:
                 st.error("Lütfen adınızı ve e-posta adresinizi eksiksiz doldurun.")
-                
