@@ -5,6 +5,7 @@ import io
 import os
 import urllib.parse
 import noisereduce as nr
+from datetime import datetime
 
 # --- SAYFA YAPILANDIRMASI ---
 st.set_page_config(page_title="Ruhun Mimarisi | VBAR Biyometrik Analiz", layout="centered", page_icon="🔬")
@@ -23,6 +24,14 @@ st.markdown("""
         background: #ffffff;
         box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         margin-top: 15px;
+    }
+    .history-card {
+        border-left: 3px solid #d4af37;
+        padding: 10px 15px;
+        background: #fffdf9;
+        margin-bottom: 10px;
+        border-radius: 6px;
+        font-size: 0.95em;
     }
     .welcome-card {
         background: #fff8e8;
@@ -62,8 +71,8 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# SEKME YAPISI (Ana Uygulama ve Bilimsel Altyapı)
-tab1, tab2 = st.tabs(["🔬 Biyometrik Analiz", "📖 Bilimsel Altyapı & Hakkında"])
+# SEKME YAPISI (Ana Uygulama, Günlük Arşiv ve Bilimsel Altyapı)
+tab1, tab3, tab2 = st.tabs(["🔬 Biyometrik Analiz", "📜 Günlük Ölçüm Arşivi", "📖 Bilimsel Altyapı & Hakkında"])
 
 with tab2:
     st.subheader("Ruhun Mimarisi ve VBAR Nedir?")
@@ -85,6 +94,26 @@ with tab2:
     3. **Ölçüm ve Dengeleme:** Rapor saniyeler içinde oluşturulur. Eğer gerginlik eşiği aşılırsa, sistem somatik akışı ve dinlendirici frekansları devreye sokar.
     """)
 
+# Durum yönetimi başlatma
+if "f0_val" not in st.session_state: st.session_state.f0_val = 0.0
+if "zcr_val" not in st.session_state: st.session_state.zcr_val = 0.0
+if "olcum_gecmisi" not in st.session_state: st.session_state.olcum_gecmisi = []
+
+with tab3:
+    st.subheader("📜 Günlük Ölçüm ve Zaman Akışı Arşivi")
+    st.write("Bu alanda yaptığınız tüm vokal analizlerin tarihçesi listelenir.")
+    
+    if len(st.session_state.olcum_gecmisi) == 0:
+        st.info("Henüz kaydedilmiş bir ölçüm bulunmuyor. 'Biyometrik Analiz' sekmesinden ilk ölçümünüzü gerçekleştirebilirsiniz.")
+    else:
+        for idx, kayit in enumerate(reversed(st.session_state.olcum_gecmisi), 1):
+            st.markdown(f"""
+            <div class="history-card">
+                <b>Ölçüm #{len(st.session_state.olcum_gecmisi) - idx + 1}</b> — <i>{kayit['zaman']}</i><br>
+                🔹 <b>Temel Frekans (F0):</b> {kayit['f0']:.1f} Hz | 🔹 <b>Gerginlik İndeksi:</b> {kayit['zcr']:.4f}
+            </div>
+            """, unsafe_allow_html=True)
+
 with tab1:
     # 1. ADIM: SES VERİSİ GİRİŞİ
     st.subheader("1. Aşama: Ses Verisi Girişi")
@@ -101,32 +130,33 @@ with tab1:
         if uploaded_file:
             audio_bytes = uploaded_file.read()
 
-    # Durum yönetimi
-    if "f0_val" not in st.session_state: st.session_state.f0_val = 0.0
-    if "zcr_val" not in st.session_state: st.session_state.zcr_val = 0.0
-
     # 2. ADIM: ANALİZ VE GÜRÜLTÜ FİLTRELEME
     if audio_bytes:
         st.audio(audio_bytes, format="audio/mp3")
         
         if st.button("🚀 Gürültü Filtreli Analizi Başlat"):
             with st.spinner("Sesiniz arındırılıyor ve biyometrik veriler analiz ediliyor..."):
-                # Ham sesi yükle
                 y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
-                
-                # Gürültü Azaltma Filtresi
                 y_denoised = nr.reduce_noise(y=y, sr=sr, prop_decrease=0.7)
                 
-                # Analiz
                 pitches, _ = librosa.piptrack(y=y_denoised, sr=sr, fmin=80, fmax=400)
                 st.session_state.f0_val = float(np.nanmean(pitches[pitches > 0])) if np.any(pitches > 0) else 210.0
                 st.session_state.zcr_val = float(np.mean(librosa.feature.zero_crossing_rate(y_denoised)))
+                
+                # Arşive Otomatik Ekleme
+                simdi = datetime.now().strftime("%d.%m.%Y %H:%M")
+                st.session_state.olcum_gecmisi.append({
+                    "zaman": simdi,
+                    "f0": st.session_state.f0_val,
+                    "zcr": st.session_state.zcr_val
+                })
             
             st.markdown(f"""
             <div class="report-box">
                 <h3 style="color: #1b263b; margin-top: 0;">Biyometrik Ölçüm Raporu (Arındırılmış)</h3>
                 <p><b>Temel Frekans (F0):</b> {st.session_state.f0_val:.1f} Hz</p>
                 <p><b>Gerginlik İndeksi:</b> {st.session_state.zcr_val:.4f}</p>
+                <p style="font-size: 0.85em; color: #666;"><i>Bu ölçüm günlük arşivinize kaydedildi.</i></p>
             </div>
             """, unsafe_allow_html=True)
             
