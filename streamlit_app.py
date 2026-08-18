@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 # --- SAYFA YAPILANDIRMASI ---
 st.set_page_config(page_title="Ruhun Mimarisi | VBAR Biyometrik Analiz", layout="centered", page_icon="🔬")
 
-# ŞIK VE KURUMSAL ARAYÜZ STİLLERİ (Sıcak Tonlar, Krem & Altın & Lacivert)
+# ŞIK VE KURUMSAL ARAYÜZ STİLLERİ
 st.markdown("""
 <style>
     .stApp {
@@ -75,37 +75,36 @@ else:
 st.markdown("""
 <div class="welcome-card">
     "Sesiniz; zihninizin, duygularınızın ve sinir sistemi durumunuzun en saf fiziksel imzasıdır." 
-    Bu terminal, biyometrik verilerinizi size özel kalibrasyonla harmanlayarak içsel dengenizi keşfetmeniz için tasarlanmıştır.
+    Gelişmiş spektral akustik motoru ile sesinizdeki tüm enerji ve gerilim dalgalanmaları hassasiyetle taranır.
 </div>
 """, unsafe_allow_html=True)
 
 # SEKME YAPISI
-tab1, tab3, tab2 = st.tabs(["🔬 Biyometrik Analiz", "📜 Günlük & Haftalık Arşiv", "📖 Bilimsel Altyapı & Hakkında"])
+tab1, tab3, tab2 = st.tabs(["🔬 Gelişmiş Biyometrik Analiz", "📜 Günlük & Haftalık Arşiv", "📖 Bilimsel Altyapı & Hakkında"])
 
 with tab2:
     st.subheader("Ruhun Mimarisi ve VBAR Nedir?")
     st.write("""
-    **VBAR (Voice-Based Assessment & Regulation)**, insan sesindeki akustik mikro titreşimleri analiz ederek sinir sisteminin o anki yükünü ve gerilim seviyesini kişiye özel referans çizgisiyle ölçen yenilikçi bir araçtır.
+    **VBAR (Voice-Based Assessment & Regulation)**, insan sesindeki mikro akustik değişimleri, enerji yoğunluğunu ve spektral dalgalanmaları analiz ederek gerilim seviyenizi objektif olarak raporlayan profesyonel bir araçtır.
     """)
     
-    st.markdown("### 🧬 Kişiselleştirilmiş Kalibrasyon Prensibi")
+    st.markdown("### 🧬 Gelişmiş Akustik Analiz Prensibi")
     st.markdown("""
-    * **Kişisel Merkez Çizgisi:** Her bireyin vokal anatomisi farklıdır. Sistem, ilk kayıtlarınızı baz alarak sizin **kendi doğal vokal tabanınızı** oluşturur.
-    * **Ses Doğrulama Koruma Katmanı:** Sessiz veya boş kayıtların analizi engellenerek yalnızca gerçek vokal veriler işleme alınır.
+    * **Spektral Ağırlık ve Enerji (Spectral Centroid & RMS):** Sesin sadece tınısına değil, öfke ve yüksek efor anlarında frekans spektrumunda oluşan yukarı yönlü kaymalara odaklanır.
+    * **Haftalık Aritmetik Ortalama:** Tüm duygu durum ve gerilim dalgalanmalarınız zaman akışında toplanarak haftalık gerçek ortalamanızı belirler.
     """)
 
 # Durum yönetimi başlatma
 if "f0_val" not in st.session_state: st.session_state.f0_val = 0.0
-if "zcr_val" not in st.session_state: st.session_state.zcr_val = 0.0
+if "gerilim_val" not in st.session_state: st.session_state.gerilim_val = 0.0
 if "olcum_gecmisi" not in st.session_state: st.session_state.olcum_gecmisi = []
-if "kisisel_baz_zcr" not in st.session_state: st.session_state.kisisel_baz_zcr = None
 
 with tab3:
-    st.subheader("📜 Zaman Akışı ve Haftalık Değerlendirme Arşivi")
-    st.write("Bu alanda günlük ölçümleriniz ve kişisel vokal eğiliminiz analiz edilir.")
+    st.subheader("📜 Zaman Akışı ve Haftalık Aritmetik Ortalama Arşivi")
+    st.write("Bu alanda gelişmiş akustik motorla ölçülen tüm kayıtlarınız listelenir.")
     
     if len(st.session_state.olcum_gecmisi) == 0:
-        st.info("Henüz kaydedilmiş bir ölçüm bulunmuyor. 'Biyometrik Analiz' sekmesinden ilk ölçümünüzü gerçekleştirebilirsiniz.")
+        st.info("Henüz kaydedilmiş bir ölçüm bulunmuyor. 'Gelişmiş Biyometrik Analiz' sekmesinden ilk ses kaydınızı gerçekleştirebilirsiniz.")
     else:
         simdi_dt = datetime.now()
         yedi_gun_once = simdi_dt - timedelta(days=7)
@@ -117,44 +116,46 @@ with tab3:
         
         if haftalik_kayitlar:
             ort_f0 = np.mean([k['f0'] for k in haftalik_kayitlar])
-            ort_zcr = np.mean([k['zcr'] for k in haftalik_kayitlar])
+            ort_gerilim = np.mean([k['gerilim'] for k in haftalik_kayitlar])
             
-            baz_deger = st.session_state.kisisel_baz_zcr if st.session_state.kisisel_baz_zcr else 0.12
-            sapma_orani = ort_zcr - baz_deger
-            
-            st.markdown("### 📈 Son 7 Günlük Kişisel Vokal Özeti")
+            st.markdown("### 📈 Son 7 Günlük Gelişmiş Akustik Özet")
             st.markdown(f"""
             <div class="summary-card">
-                <b>Kişisel Vokal Tabanınız (Baz):</b> {baz_deger:.4f}<br>
-                <b>Haftalık Ortalama Gerginlik İndeksi:</b> {ort_zcr:.4f}<br>
+                <b>Toplam Kayıt Sayısı (Son 7 Gün):</b> {len(haftalik_kayitlar)}<br>
+                <b>Haftalık Ortalama Temel Frekans (F0):</b> {ort_f0:.1f} Hz<br>
+                <b>Haftalık Ortalama Gerilim / Enerji İndeksi:</b> {ort_gerilim:.2f}<br>
                 <hr style='border: 0.5px solid #c5a083; margin: 10px 0;'>
-                <b>🧠 Kişiselleştirilmiş Öz-Gözlem Yorumu:</b><br>
-                { "Kişisel merkez çizginizin üzerine çıktığınız, zihinsel eforun ve temponun bu hafta yoğunlaştığı bir döngüdesiniz. Vokal tonunuz dinlenmeye ve somatik akışa alan açmanız gerektiğini fısıldıyor." if sapma_orani > 0.03 else "Haftalık vokal akışınız, kendi kişisel merkez çizginizle mükemmel bir uyum ve denge içinde seyretmiş. İçsel merkezlenmeniz oldukça kararlı." }
+                <b>🧠 Bütüncül Akustik Yorum:</b><br>
+                { "Haftalık enerji ve gerilim ortalamanız yüksek seyretmiş. Ses dalgalarınızdaki spektral yoğunluk, yoğun bir tempoda olduğunuzu gösteriyor." if ort_gerilim > 6.0 else "Haftalık akustik ortalamanız oldukça dengeli, huzurlu ve akışında bir seyir izlemiş." }
             </div>
             """, unsafe_allow_html=True)
             
         st.markdown("---")
-        st.markdown("### 📋 Tüm Günlük Ölçüm Kayıtları")
+        st.markdown("### 📋 Tüm Ölçüm Kayıtları Arşivi")
+        
+        col_sil, _ = st.columns([1, 3])
+        with col_sil:
+            if st.button("🗑️ Arşivi Sıfırla"):
+                st.session_state.olcum_gecmisi = []
+                st.rerun()
+
         for idx, kayit in enumerate(reversed(st.session_state.olcum_gecmisi), 1):
             st.markdown(f"""
             <div class="history-card">
                 <b>Ölçüm #{len(st.session_state.olcum_gecmisi) - idx + 1}</b> — <i>{kayit['zaman']}</i><br>
-                🔹 <b>Temel Frekans (F0):</b> {kayit['f0']:.1f} Hz | 🔹 <b>Gerginlik İndeksi:</b> {kayit['zcr']:.4f}
+                🔹 <b>Temel Frekans (F0):</b> {kayit['f0']:.1f} Hz | ⚡ <b>Gerilim İndeksi:</b> {kayit['gerilim']:.2f}
             </div>
             """, unsafe_allow_html=True)
 
 with tab1:
-    st.subheader("1. Aşama: Ses Verisi Girişi ve Kalibrasyon")
-    
-    if st.session_state.kisisel_baz_zcr is None:
-        st.info("🎯 **İlk Keşif:** Sisteme hoş geldiniz. Size özel vokal kalibrasyonunun yapılabilmesi için lütfen ilk doğal ses kaydınızı gerçekleştirin.")
+    st.subheader("1. Aşama: Gelişmiş Ses Verisi Girişi")
     
     upload_option = st.radio("Ses Verisi Sağlama Yöntemi:", ["Mikrofon ile Kayıt Yap", "Ses Dosyası Yükle (.mp3, .wav)"])
 
     audio_bytes = None
 
     if upload_option == "Mikrofon ile Kayıt Yap":
-        audio_file = st.audio_input("Lütfen derin bir nefes alıp 5-10 saniye doğal tonunuzla konuşun")
+        audio_file = st.audio_input("Lütfen konuşun (öfke, sohbet, coşku veya doğal haliniz)")
         if audio_file:
             audio_bytes = audio_file.read()
     else:
@@ -165,55 +166,62 @@ with tab1:
     if audio_bytes:
         st.audio(audio_bytes, format="audio/mp3")
         
-        button_label = "🎯 Kalibrasyonu Tamamla ve Analizi Başlat" if st.session_state.kisisel_baz_zcr is None else "🚀 Gürültü Filtreli Analizi Başlat"
-        
-        if st.button(button_label):
-            with st.spinner("Sesiniz arındırılıyor ve biyometrik veriler analiz ediliyor..."):
+        if st.button("🚀 Gelişmiş Spektral Analizi Başlat ve Arşive Ekle"):
+            with st.spinner("Ses spektrumu, enerji dağılımı ve vokal tınılar analiz ediliyor..."):
                 y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
                 
-                # SES KONTROLÜ (Boş kayıt / sessizlik koruma katmanı)
-                rms_enerji = np.mean(librosa.feature.rms(y=y))
+                # SES KONTROLÜ (Boş kayıt koruması)
+                rms_enerji_kontrol = np.mean(librosa.feature.rms(y=y))
                 
-                if rms_enerji < 0.01:
-                    st.error("⚠️ Yetersiz ses algılandı! Lütfen mikrofonunuza yaklaşarak net bir şekilde konuşun veya kaydı tekrarlayın.")
+                if rms_enerji_kontrol < 0.01:
+                    st.error("⚠️ Yetersiz ses algılandı! Lütfen mikrofonunuza yaklaşarak net bir şekilde konuşun.")
                 else:
+                    # Gürültü azaltma
                     y_denoised = nr.reduce_noise(y=y, sr=sr, prop_decrease=0.7)
                     
+                    # 1. Temel Frekans (F0)
                     pitches, _ = librosa.piptrack(y=y_denoised, sr=sr, fmin=80, fmax=400)
                     anlik_f0 = float(np.nanmean(pitches[pitches > 0])) if np.any(pitches > 0) else 210.0
-                    anlik_zcr = float(np.mean(librosa.feature.zero_crossing_rate(y_denoised)))
+                    
+                    # 2. Gelişmiş Mühendislik Metrikleri (RMS Enerji + Spektral Ağırlık / Centroid)
+                    rms_val = np.mean(librosa.feature.rms(y=y_denoised))
+                    spectral_centroid = np.mean(librosa.feature.spectral_centroid(y=y_denoised, sr=sr))
+                    
+                    # Öfke ve gerginlik anlarında spektral merkez yukarı kayar ve enerji artar
+                    # Bu formül sesin sertliğini, dinamik patlamalarını ve frekans yükselmesini doğrudan yakalar
+                    gelismis_gerilim = float((rms_val * 50) + (spectral_centroid / 400))
                     
                     st.session_state.f0_val = anlik_f0
-                    st.session_state.zcr_val = anlik_zcr
-                    
-                    if st.session_state.kisisel_baz_zcr is None:
-                        st.session_state.kisisel_baz_zcr = anlik_zcr
+                    st.session_state.gerilim_val = gelismis_gerilim
                     
                     simdi = datetime.now().strftime("%d.%m.%Y %H:%M")
                     st.session_state.olcum_gecmisi.append({
                         "zaman": simdi,
                         "f0": st.session_state.f0_val,
-                        "zcr": st.session_state.zcr_val
+                        "gerilim": st.session_state.gerilim_val
                     })
                 
                     st.markdown(f"""
                     <div class="report-box">
-                        <h3 style="color: #1b263b; margin-top: 0;">Kişiselleştirilmiş Biyometrik Ölçüm Raporu</h3>
+                        <h3 style="color: #1b263b; margin-top: 0;">Gelişmiş Akustik Biyometrik Rapor</h3>
                         <p><b>Temel Frekans (F0):</b> {st.session_state.f0_val:.1f} Hz</p>
-                        <p><b>Gerginlik İndeksi (ZCR):</b> {st.session_state.zcr_val:.4f}</p>
-                        <p><b>Kişisel Vokal Bazınız:</b> {st.session_state.kisisel_baz_zcr:.4f}</p>
-                        <p style="font-size: 0.85em; color: #666;"><i>Bu ölçüm kişisel arşivinize kaydedildi.</i></p>
+                        <p><b>Gerilim / Enerji İndeksi:</b> {st.session_state.gerilim_val:.2f}</p>
+                        <p style="font-size: 0.85em; color: #666;"><i>Bu ölçüm spektral analiz motoruyla hesaplanarak arşive eklendi.</i></p>
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    if st.session_state.zcr_val > (st.session_state.kisisel_baz_zcr * 1.25):
-                        st.warning("⚠️ Kişisel merkez çizginizin üzerinde gerginlik tespit edildi. Dinlendirici somatik akış başlatılıyor:")
+                    # Kıyaslama
+                    tum_gerilimler = [k['gerilim'] for k in st.session_state.olcum_gecmisi]
+                    genel_ortalama_gerilim = np.mean(tum_gerilimler)
+                    
+                    if st.session_state.gerilim_val > (genel_ortalama_gerilim * 1.15):
+                        st.warning("⚠️ Bu kayıtta yüksek spektral enerji ve gerilim saptandı. Dinlendirici somatik akış önerilir:")
                         if os.path.exists("rahatlama .mp3"):
                             st.audio("rahatlama .mp3", format="audio/mp3")
                         else:
                             st.info("💡 Rahatlama ses dosyası aranıyor...")
                     else:
-                        st.success("✅ Vokal enerjiniz kendi doğal akışınızla uyum içinde.")
+                        st.success("✅ Bu kayıttaki akustik enerji kendi genel ortalamanızla uyum içinde.")
 
     st.markdown("---")
     st.subheader("📩 Uzman Raporu Talep Et")
@@ -238,7 +246,7 @@ with tab1:
             if ad_soyad and kullanici_mail:
                 dogum_tarihi_str = f"{dogum_gun} {dogum_ay} {dogum_yil}"
                 konu = f"VBAR Analiz Talebi - {ad_soyad}"
-                govde = f"Ad Soyad: {ad_soyad}\nE-posta: {kullanici_mail}\nDoğum Tarihi: {dogum_tarihi_str}\nDoğum Saati: {dogum_saati}\n\nÖlçüm Sonuçları:\n- F0: {st.session_state.f0_val:.1f} Hz\n- Gerginlik: {st.session_state.zcr_val:.4f}"
+                govde = f"Ad Soyad: {ad_soyad}\nE-posta: {kullanici_mail}\nDoğum Tarihi: {dogum_tarihi_str}\nDoğum Saati: {dogum_saati}\n\nSon Ölçüm:\n- F0: {st.session_state.f0_val:.1f} Hz\n- Gerilim İndeksi: {st.session_state.gerilim_val:.2f}"
                 mailto_link = f"mailto:ruhunnmimarisi@gmail.com?subject={urllib.parse.quote(konu)}&body={urllib.parse.quote(govde)}"
                 st.markdown(f'<a href="{mailto_link}" target="_blank" style="display:inline-block;background:#1b263b;color:#fff;padding:10px 20px;border-radius:8px;font-weight:bold;text-decoration:none;margin-top:10px;">📬 E-Posta Uygulamasını Aç ve Gönder</a>', unsafe_allow_html=True)
             else:
