@@ -91,7 +91,7 @@ with tab2:
     st.markdown("### 🧬 Kişiselleştirilmiş Kalibrasyon Prensibi")
     st.markdown("""
     * **Kişisel Merkez Çizgisi:** Her bireyin vokal anatomisi farklıdır. Sistem, ilk kayıtlarınızı baz alarak sizin **kendi doğal vokal tabanınızı** oluşturur.
-    * **Dinamik Eşik Analizi:** Yapılan günlük ölçümler ortak bir sabitle değil, tamamen sizin kendi sakin halinizin ortalamasıyla kıyaslanır.
+    * **Ses Doğrulama Koruma Katmanı:** Sessiz veya boş kayıtların analizi engellenerek yalnızca gerçek vokal veriler işleme alınır.
     """)
 
 # Durum yönetimi başlatma
@@ -119,7 +119,6 @@ with tab3:
             ort_f0 = np.mean([k['f0'] for k in haftalik_kayitlar])
             ort_zcr = np.mean([k['zcr'] for k in haftalik_kayitlar])
             
-            # Kişisel baza göre akıllı yorumlama
             baz_deger = st.session_state.kisisel_baz_zcr if st.session_state.kisisel_baz_zcr else 0.12
             sapma_orani = ort_zcr - baz_deger
             
@@ -171,45 +170,50 @@ with tab1:
         if st.button(button_label):
             with st.spinner("Sesiniz arındırılıyor ve biyometrik veriler analiz ediliyor..."):
                 y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
-                y_denoised = nr.reduce_noise(y=y, sr=sr, prop_decrease=0.7)
                 
-                pitches, _ = librosa.piptrack(y=y_denoised, sr=sr, fmin=80, fmax=400)
-                anlik_f0 = float(np.nanmean(pitches[pitches > 0])) if np.any(pitches > 0) else 210.0
-                anlik_zcr = float(np.mean(librosa.feature.zero_crossing_rate(y_denoised)))
+                # SES KONTROLÜ (Boş kayıt / sessizlik koruma katmanı)
+                rms_enerji = np.mean(librosa.feature.rms(y=y))
                 
-                st.session_state.f0_val = anlik_f0
-                st.session_state.zcr_val = anlik_zcr
-                
-                # Eğer daha önce kalibrasyon yapılmadıysa, ilk kayıt KİŞİSEL BAZ çizgisi olur
-                if st.session_state.kisisel_baz_zcr is None:
-                    st.session_state.kisisel_baz_zcr = anlik_zcr
-                
-                simdi = datetime.now().strftime("%d.%m.%Y %H:%M")
-                st.session_state.olcum_gecmisi.append({
-                    "zaman": simdi,
-                    "f0": st.session_state.f0_val,
-                    "zcr": st.session_state.zcr_val
-                })
-            
-            st.markdown(f"""
-            <div class="report-box">
-                <h3 style="color: #1b263b; margin-top: 0;">Kişiselleştirilmiş Biyometrik Ölçüm Raporu</h3>
-                <p><b>Temel Frekans (F0):</b> {st.session_state.f0_val:.1f} Hz</p>
-                <p><b>Gerginlik İndeksi (ZCR):</b> {st.session_state.zcr_val:.4f}</p>
-                <p><b>Kişisel Vokal Bazınız:</b> {st.session_state.kisisel_baz_zcr:.4f}</p>
-                <p style="font-size: 0.85em; color: #666;"><i>Bu ölçüm kişisel arşivinize kaydedildi.</i></p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Kişisel baza göre anlık somatik uyarı
-            if st.session_state.zcr_val > (st.session_state.kisisel_baz_zcr * 1.25):
-                st.warning("⚠️ Kişisel merkez çizginizin üzerinde gerginlik tespit edildi. Dinlendirici somatik akış başlatılıyor:")
-                if os.path.exists("rahatlama .mp3"):
-                    st.audio("rahatlama .mp3", format="audio/mp3")
+                if rms_enerji < 0.01:
+                    st.error("⚠️ Yetersiz ses algılandı! Lütfen mikrofonunuza yaklaşarak net bir şekilde konuşun veya kaydı tekrarlayın.")
                 else:
-                    st.info("💡 Rahatlama ses dosyası aranıyor...")
-            else:
-                st.success("✅ Vokal enerjiniz kendi doğal akışınızla uyum içinde.")
+                    y_denoised = nr.reduce_noise(y=y, sr=sr, prop_decrease=0.7)
+                    
+                    pitches, _ = librosa.piptrack(y=y_denoised, sr=sr, fmin=80, fmax=400)
+                    anlik_f0 = float(np.nanmean(pitches[pitches > 0])) if np.any(pitches > 0) else 210.0
+                    anlik_zcr = float(np.mean(librosa.feature.zero_crossing_rate(y_denoised)))
+                    
+                    st.session_state.f0_val = anlik_f0
+                    st.session_state.zcr_val = anlik_zcr
+                    
+                    if st.session_state.kisisel_baz_zcr is None:
+                        st.session_state.kisisel_baz_zcr = anlik_zcr
+                    
+                    simdi = datetime.now().strftime("%d.%m.%Y %H:%M")
+                    st.session_state.olcum_gecmisi.append({
+                        "zaman": simdi,
+                        "f0": st.session_state.f0_val,
+                        "zcr": st.session_state.zcr_val
+                    })
+                
+                    st.markdown(f"""
+                    <div class="report-box">
+                        <h3 style="color: #1b263b; margin-top: 0;">Kişiselleştirilmiş Biyometrik Ölçüm Raporu</h3>
+                        <p><b>Temel Frekans (F0):</b> {st.session_state.f0_val:.1f} Hz</p>
+                        <p><b>Gerginlik İndeksi (ZCR):</b> {st.session_state.zcr_val:.4f}</p>
+                        <p><b>Kişisel Vokal Bazınız:</b> {st.session_state.kisisel_baz_zcr:.4f}</p>
+                        <p style="font-size: 0.85em; color: #666;"><i>Bu ölçüm kişisel arşivinize kaydedildi.</i></p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    if st.session_state.zcr_val > (st.session_state.kisisel_baz_zcr * 1.25):
+                        st.warning("⚠️ Kişisel merkez çizginizin üzerinde gerginlik tespit edildi. Dinlendirici somatik akış başlatılıyor:")
+                        if os.path.exists("rahatlama .mp3"):
+                            st.audio("rahatlama .mp3", format="audio/mp3")
+                        else:
+                            st.info("💡 Rahatlama ses dosyası aranıyor...")
+                    else:
+                        st.success("✅ Vokal enerjiniz kendi doğal akışınızla uyum içinde.")
 
     st.markdown("---")
     st.subheader("📩 Uzman Raporu Talep Et")
