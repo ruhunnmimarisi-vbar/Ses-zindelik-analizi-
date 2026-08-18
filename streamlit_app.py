@@ -1,62 +1,52 @@
 import streamlit as st
-import base64
+import numpy as np
+import librosa
+import os
+import tempfile
 
 # Sayfa Yapılandırması
 st.set_page_config(page_title="Ruhun Mimarisi", page_icon="🏛️")
 
-# Amblemi ekrana en temiz haliyle sabitleyen stil
+# Estetik Stil (Butik, temiz ve sakin)
 st.markdown("""
     <style>
-    .logo-container {
-        display: flex;
-        justify-content: center;
-        padding-top: 20px;
-        padding-bottom: 30px;
-    }
-    .stApp {
-        background-color: #fdfcf9; /* Amblemin o nazik tonuna uygun zemin */
-        color: #5d5045;
-    }
-    .stButton>button {
-        border: 1px solid #c5a083;
-        color: #5d5045;
-        background-color: transparent;
-        border-radius: 20px;
-    }
+    .stApp { background-color: #fcfbf9; color: #5d5045; }
+    .logo-container { display: flex; justify-content: center; padding: 20px; }
     </style>
 """, unsafe_allow_html=True)
 
-# 1. AMBLEM: Markanın Kalbi (Senin gönderdiğin amblem burada sabitleniyor)
-# Not: Resim dosyasının adını 'amblem.png' olarak varsayıyorum.
+# 1. Amblem (Markanın mührü)
 st.markdown('<div class="logo-container">', unsafe_allow_html=True)
-st.image("watermarked_img_1706696993258948374.png", width=250) 
+st.image("1783526207831.png", width=200)
 st.markdown('</div>', unsafe_allow_html=True)
 
-st.markdown("<h2 style='text-align: center; color: #5d5045;'>Meral Erdil</h2>", unsafe_allow_html=True)
-st.markdown("<hr style='border: 0.5px solid #dcdcdc;'>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center; color: #5d5045;'>Vokal Terminali</h2>", unsafe_allow_html=True)
 
-# 2. Vokal Terminali
-st.markdown("### 🎙️ İçsel Titreşim Kaydı")
-st.write("Sadece sesinin fiziksel yansımasını ölçüyoruz. Gizlilik senin en büyük hakkın.")
+# 2. Gizlilik ve Hafiflik Prensibi (Sistem şişmez, veri birikmez)
+st.info("💡 **Gizlilik İlkesi:** Ses dosyalarınız sunucuda tutulmaz, analiz anlık yapılır ve işlem sonunda tamamen imha edilir.")
 
-# Ses ölçüm mantığı buraya gelecek (kullanıcı dostu, yalın)
+# 3. Ses Analizi (Matematiksel veri - Yapay zeka uydurması yok)
 uploaded_file = st.file_uploader("Sesinizi buraya bırakın", type=["wav", "mp3"])
 
 if uploaded_file:
-    st.success("Titreşim analizi tamamlandı. Sesiniz sistemden silindi.")
-    # Burada o sakin metrikler amblemin renk tonlarıyla (altın/kuvars) görünecek.
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_file:
+        tmp_file.write(uploaded_file.read())
+        tmp_path = tmp_file.name
+    
+    try:
+        y, sr = librosa.load(tmp_path, sr=None)
+        rms = np.mean(librosa.feature.rms(y=y))
+        
+        st.success("Titreşim analizi tamamlandı.")
+        st.metric(label="Vokal Enerji İmzası", value=f"{rms:.4f}")
+    finally:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path) # Dosyayı hemen sil (Hafıza şişmesini önle)
 
-# 3. Rehberlik Kapıları
+# 4. Rehberlik Kapıları (Senin kapıların)
 st.markdown("### 🚪 Rehberlik Kapıları")
 kapim = st.selectbox("Bugün hangi eşiktesin?", ["Sessizlik", "Arınma", "Öz-Şefkat"])
 
-# Burada amblemin ağırlığına uygun, zarif bir açıklama alanı
-st.markdown(f"""
-    <div style='background-color: #f8f5f1; padding: 20px; border-radius: 10px; border-left: 5px solid #c5a083;'>
-        Seçtiğiniz {kapim} kapısı, bu haftanın akışında size rehberlik edecek.
-    </div>
-""", unsafe_allow_html=True)
-
-# 4. İletişim
+# 5. İletişim (Yalnızca mail köprüsü)
 st.markdown("---")
-st.write("✨ *Detaylı rehberlik ve içsel yolculuk raporu için:* [meralerdil.iletisim@gmail.com](mailto:meralerdil.iletisim@gmail.com)")
+st.write("✨ Detaylı rehberlik için: [ruhunnmimarisi@gmail.com](mailto:ruhunnmimarisi@gmail.com)")
