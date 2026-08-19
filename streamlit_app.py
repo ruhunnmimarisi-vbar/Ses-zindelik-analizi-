@@ -6,6 +6,12 @@ import os
 import urllib.parse
 import noisereduce as nr
 from datetime import datetime, timedelta
+# --- ZİYARETÇİ SAYACI BAŞLANGICI ---
+if 'ziyaretci_sayisi' not in st.session_state:
+    st.session_state.ziyaretci_sayisi = 124  # Başlangıç sayısını buradan değiştirebilirsin
+else:
+    st.session_state.ziyaretci_sayisi += 1
+# --- ZİYARETÇİ SAYACI SONU ---
 
 # --- ASTROLOJİ KÜTÜPHANELERİ ---
 from flatlib.datetime import Datetime
@@ -279,3 +285,6 @@ with tab1:
                 st.markdown(f'<a href="{mailto_link}" target="_blank" style="display:inline-block;background:#1b263b;color:#fff;padding:10px 20px;border-radius:8px;font-weight:bold;text-decoration:none;margin-top:10px;">📬 E-Posta Uygulamasını Aç ve Gönder</a>', unsafe_allow_html=True)
             else:
                 st.error("Lütfen adınızı ve e-posta adresinizi eksiksiz doldurun.")
+# --- ZİYARETÇİ SAYACI GÖRÜNÜMÜ ---
+st.markdown("---")
+st.markdown(f"<div style='text-align: center; color: #888; font-size: 0.8em;'>🔬 <b>VBAR</b> | Toplam Ziyaret: {st.session_state.ziyaretci_sayisi}</div>", unsafe_allow_html=True)
