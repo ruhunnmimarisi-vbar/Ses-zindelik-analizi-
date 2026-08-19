@@ -8,26 +8,30 @@ import ephem
 from datetime import datetime
 
 # --- SAYFA YAPILANDIRMASI ---
-st.set_page_config(page_title="Ruhun Mimarisi | VBAR Biyometrik & Kozmik Analiz", layout="centered", page_icon="🏛️")
+st.set_page_config(page_title="Ruhun Mimarisi | VBAR Biyometrik & Kozmik Harita", layout="centered", page_icon="🏛️")
 
 st.markdown("""
 <style>
     .stApp { background-color: #fcfbfa; color: #2c2c2c; }
     .report-card { border: 1px solid #d4af37; padding: 20px; border-radius: 12px; background: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 15px; }
     .title-box { text-align: center; color: #1b263b; border-bottom: 2px solid #d4af37; padding-bottom: 10px; margin-bottom: 20px; }
-    .astro-box { background: #fdf6e3; border-left: 4px solid #d4af37; padding: 15px; border-radius: 8px; margin-top: 15px; }
+    .astro-box { background: #fdf6e3; border-left: 4px solid #d4af37; padding: 15px; border-radius: 8px; margin-top: 15px; line-height: 1.6; }
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<div class='title-box'><h1>🏛️ Ruhun Mimarisi | VBAR</h1><p>Ses Frekansı ve Ephem Tabanlı Kozmik Harmanlama</p></div>", unsafe_allow_html=True)
+# 1. LOGO KONTROLÜ
+if os.path.exists("1783526207831.png"):
+    st.image("1783526207831.png", use_container_width=True)
+else:
+    st.markdown("<div class='title-box'><h1>🏛️ Ruhun Mimarisi | VBAR</h1></div>", unsafe_allow_html=True)
 
 # SEKME YAPISI
-tab1, tab2 = st.tabs(["🔬 Biyometrik & Kozmik Analiz", "📖 Hakkında"])
+tab1, tab2 = st.tabs(["🔬 Biyometrik & Kozmik Harita", "📖 Hakkında"])
 
 with tab2:
-    st.subheader("Ruhun Mimarisi ve Ephem Altyapısı Hakkında")
+    st.subheader("Ruhun Mimarisi ve Kozmik Harita Altyapısı")
     st.write("""
-    **VBAR**, sesinizdeki mikro akustik değişimler ile **ephem** kütüphanesi aracılığıyla gökyüzünün o anki matematiksel konumlarını harmanlayan profesyonel bir farkındalık aracıdır.
+    **VBAR**, ses frekansınızdaki spektral dalgalanmaları ve enerji indeksini; **ephem** motoru ile hesaplanan doğum haritası arketipleri ve element dengeleriyle harmanlayan bütüncül bir rehberdir.
     """)
 
 with tab1:
@@ -46,7 +50,7 @@ with tab1:
             audio_bytes = uploaded_file.read()
 
     st.markdown("---")
-    st.markdown("#### 🌌 Doğum Bilgileri (Kozmik Konum İçin)")
+    st.markdown("#### 🌌 Doğum Haritası Verileri")
     col_g, col_a, col_y = st.columns(3)
     with col_g:
         dogum_gun = st.selectbox("Gün", list(range(1, 32)), index=28) # 29
@@ -58,8 +62,8 @@ with tab1:
     if audio_bytes:
         st.audio(audio_bytes, format="audio/mp3")
         
-        if st.button("✨ Ephem Destekli Akustik-Kozmik Analizi Başlat"):
-            with st.spinner("Ses dalgaları taranıyor ve ephem göksel konumları hesaplanıyor..."):
+        if st.button("✨ Kapsamlı Kozmik Harita Analizini Başlat"):
+            with st.spinner("Ses spektrumu taranıyor ve ephem ile doğum haritası konumları hesaplanıyor..."):
                 try:
                     # 1. Ses Analizi (Librosa)
                     y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
@@ -71,13 +75,37 @@ with tab1:
                     rms_val = np.mean(librosa.feature.rms(y=y_denoised))
                     gerilim = float((rms_val * 50) + (np.mean(librosa.feature.spectral_centroid(y=y_denoised, sr=sr)) / 400))
 
-                    # 2. Ephem ile Gerçek Göksel / Burç Hesaplaması
-                    tarih_str = f"{doguv_yil_safe if 'doguv_yil_safe' in locals() else dogum_yil}/{dogum_ay}/{dogum_gun}"
-                    # Ephem formatına uygun tarih stringi
+                    # 2. Ephem ile Derin Göksel Konumlar (Güneş, Ay, Merkür, Venüs ve Takımyıldız simülasyonu)
                     ephem_tarih = f"{dogum_yil}/{dogum_ay}/{dogum_gun}"
+                    
                     sun = ephem.Sun(ephem_tarih)
-                    constellation = ephem.constellation(sun)
-                    burc = constellation[1] # Gökyüzündeki takımyıldız adı
+                    moon = ephem.Moon(ephem_tarih)
+                    mercury = ephem.Mercury(ephem_tarih)
+                    venus = ephem.Venus(ephem_tarih)
+                    
+                    sun_const = ephem.constellation(sun)[1]
+                    moon_const = ephem.constellation(moon)[1]
+                    merc_const = ephem.constellation(mercury)[1]
+                    venus_const = ephem.constellation(venus)[1]
+
+                    # 3. Kapsamlı Harita ve Arketip Yorumları
+                    harita_metinleri = {
+                        "Capricorn": "<b>Oğlak (Capricorn) Özü:</b> Yapılandırma, stratejik sabır ve sarsılmaz sorumluluk bilinci. İçsel otoriteniz, dış dünyada kalıcı eserler bırakma iradenizi besler.",
+                        "Sagittarius": "<b>Yay (Sagittarius) Özü:</b> Keşif, felsefi derinlik ve engin bir vizyon. Hayatı geniş bir mercekten okuma ve hakikat arayışı ruhunuzun temelini oluşturur.",
+                        "Scorpio": "<b>Akrep (Scorpio) Özü:</b> Dönüşüm, mutlak sadakat ve derin sezgisel güç. Görünmeyeni sezme ve krizleri avantaja çevirme potansiyeli yüksektir.",
+                        "Aquarius": "<b>Kova (Aquarius) Özü:</b> Evrensel vizyon, özgürlük ve yenilikçi zihin. Toplumsal kalıpların ötesinde düşünen öncü bir frekansa sahipsiniz.",
+                        "Pisces": "<b>Balık (Pisces) Özü:</b> Şefkat, evrensel akış ve sınırsız sezgi. Ruhsal boyutla kurduğunuz bağ oldukça derindir.",
+                        "Aries": "<b>Koç (Aries) Özü:</b> Öncü ateş, cesaret ve saf irade. Hayatı başlatma ve engelleri aşma gücü verir.",
+                        "Taurus": "<b>Boğa (Taurus) Özü:</b> Toprağın dinginliği, kararlılık ve estetik değerler. Maddi ve manevi köklenme beceriniz yüksektir.",
+                        "Gemini": "<b>İkizler (Gemini) Özü:</b> Zihinsel çeviklik, çok yönlü iletişim ve bilgi akışı.",
+                        "Cancer": "<b>Yengeç (Cancer) Özü:</b> Duygusal hafıza, koruyuculuk ve köklerine bağlılık.",
+                        "Leo": "<b>Aslan (Leo) Özü:</b> Yaratıcı özgüven, sahne enerjisi ve kalpten gelen liderlik.",
+                        "Virgo": "<b>Başak (Virgo) Özü:</b> Analitik zeka, şifa odaklı düzen ve kusursuzlandırma iradesi.",
+                        "Libra": "<b>Terazi (Libra) Özü:</b> Denge, adalet, estetik ve ilişkilerde uyum arayışı."
+                    }
+
+                    gunes_detay = harita_metinleri.get(sun_const, "Göksel güneş döngüsü aktif.")
+                    ay_detay = harita_metinleri.get(moon_const, "Duygusal katmanda derin sezgisel akış.")
 
                     st.markdown(f"""
                     <div class="report-card">
@@ -87,9 +115,15 @@ with tab1:
                     </div>
                     
                     <div class="astro-box">
-                        <h3 style="color: #1b263b; margin-top: 0;">🌌 Ephem Kozmik Yansıma</h3>
-                        <p><b>Hesaplanan Konum / Takımyıldız:</b> {burc}</p>
-                        <p><i>Göksel döngüleriniz ile ses frekansınız bu alanda bütüncül bir akış sergilemektedir.</i></p>
+                        <h3 style="color: #1b263b; margin-top: 0;">🌌 Ephem Kozmik Harita ve Gezegen Konumları</h3>
+                        <p><b>Güneş Konumu (Öz Kimlik / Takımyıldız):</b> {sun_const}</p>
+                        <p>{gunes_detay}</p>
+                        <hr style='border: 0.5px solid #d4af37; margin: 10px 0;'>
+                        <p><b>Ay Konumu (Duygusal Katman / İç Dünya):</b> {moon_const}</p>
+                        <p>{ay_detay}</p>
+                        <hr style='border: 0.5px solid #d4af37; margin: 10px 0;'>
+                        <p><b>İletişim & Zihin (Merkür):</b> {merc_const} | <b>İlişkiler & Değerler (Venüs):</b> {venus_const}</p>
+                        <p style="font-size: 0.9em; color: #555; margin-top: 10px;"><i>Bu harita verileri, ses spektrumunuzdaki enerji dalgalanmalarıyla eş zamanlı olarak sentezlenmiştir.</i></p>
                     </div>
                     """, unsafe_allow_html=True)
 
