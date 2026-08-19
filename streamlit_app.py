@@ -105,7 +105,6 @@ if "f0_val" not in st.session_state: st.session_state.f0_val = 0.0
 if "gerilim_val" not in st.session_state: st.session_state.gerilim_val = 0.0
 if "olcum_gecmisi" not in st.session_state: st.session_state.olcum_gecmisi = []
 
-# Eski key formatından kalma hataları önlemek için
 for kayit in st.session_state.olcum_gecmisi:
     if 'gerilim' not in kayit and 'zcr' in kayit:
         kayit['gerilim'] = kayit['zcr'] * 50
@@ -166,7 +165,6 @@ with tab3:
 with tab1:
     st.subheader("1. Aşama: Gelişmiş Ses ve Doğum Bilgisi Girişi")
     
-    # Doğum haritası analizi için opsiyonel doğum bilgisi alanları
     with st.expander("✨ Astro-Akustik Sentez İçin Doğum Bilgileri (İsteğe Bağlı)"):
         col_d1, col_d2 = st.columns(2)
         with col_d1:
@@ -219,12 +217,11 @@ with tab1:
                         "gerilim": st.session_state.gerilim_val
                     })
                     
-                    # Flatlib ile dinamik Ay Düğümü hesaplama
                     astro_yorum_metni = ""
                     try:
                         d_str = astro_dogum_tarihi.strftime("%Y/%m/%d")
                         dt = Datetime(d_str, astro_dogum_saati, '+03:00')
-                        pos = GeoPos('41N59', '27E57') # Saray/Tekirdağ baz koordinat
+                        pos = GeoPos('41N59', '27E57') 
                         chart = Chart(dt, pos)
                         nn_sign = chart.get(const.NORTH_NODE).sign
                         sn_sign = chart.get(const.SOUTH_NODE).sign
