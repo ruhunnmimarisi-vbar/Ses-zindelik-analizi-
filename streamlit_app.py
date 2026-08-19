@@ -4,7 +4,6 @@ import numpy as np
 import io
 import os
 import noisereduce as nr
-from datetime import datetime
 
 # --- SAYFA YAPILANDIRMASI ---
 st.set_page_config(page_title="Ruhun Mimarisi | VBAR Biyometrik & Kozmik Harita", layout="centered", page_icon="🏛️")
@@ -53,9 +52,9 @@ with tab1:
     
     col_g, col_a, col_y = st.columns(3)
     with col_g:
-        dogum_gun = st.selectbox("Gün", list(range(1, 32)), index=28) # 29
+        dogum_gun = st.selectbox("Gün", list(range(1, 32)), index=28)
     with col_a:
-        dogum_ay = st.selectbox("Ay", list(range(1, 13)), index=11) # Aralık (12)
+        dogum_ay = st.selectbox("Ay", list(range(1, 13)), index=11)
     with col_y:
         dogum_yil = st.selectbox("Yıl", list(range(1940, 2026)), index=44)
 
@@ -75,25 +74,35 @@ with tab1:
                     rms_val = np.mean(librosa.feature.rms(y=y_denoised))
                     gerilim = float((rms_val * 50) + (np.mean(librosa.feature.spectral_centroid(y=y_denoised, sr=sr)) / 400))
 
-                    # 2. Kesin Zodyak (Burç) Hesaplama Algoritması (Gün ve Aya Göre)
+                    # 2. Kesin Zodyak (Burç) Hesaplama Algoritması
                     def burc_hesapla(gun, ay):
-                        if (ay == 3 and gun >= 21) or (ay == 4 and gun <= 20): return "Koç"
-                        elif (ay == 4 and gun >= 21) or (ay == 5 and gun <= 20): return "Boğa"
-                        elif (ay == 5 and gun >= 21) or (ay == 6 and gun <= 20): return "İkizler"
-                        elif (ay == 6 and gun >= 21) or (ay == 7 and gun <= 22): return "Yengeç"
-                        elif (ay == 7 and gun >= 23) or (ay == 8 and gun <= 22): return "Aslan"
-                        elif (ay == 8 and gun >= 23) or (ay == 9 and gun <= 22): return "Başak"
-                        elif (ay == 9 and gun >= 23) or (ay == 10 and gun <= 22): return "Terazi"
-                        elif (ay == 10 and gun >= 23) or (ay == 11 and gun <= 21): return "Akrep"
-                        elif (ay == 11 and gun >= 22) or (ay == 12 and gun <= 21): return "Yay"
-                        elif (ay == 12 and gun >= 22) or (ay == 1: return "Oğlak" # Aralık sonu dahil
-                        elif (ay == 1 and gun >= 2 and gun <= 19): return "Oğlak" # Ocak başı dahil
-                        elif (ay == 1 and gun >= 20) or (ay == 2 and gun <= 18): return "Kova"
-                        else: return "Balık"
+                        if (ay == 3 and gun >= 21) or (ay == 4 and gun <= 20):
+                            return "Koç"
+                        elif (ay == 4 and gun >= 21) or (ay == 5 and gun <= 20):
+                            return "Boğa"
+                        elif (ay == 5 and gun >= 21) or (ay == 6 and gun <= 20):
+                            return "İkizler"
+                        elif (ay == 6 and gun >= 21) or (ay == 7 and gun <= 22):
+                            return "Yengeç"
+                        elif (ay == 7 and gun >= 23) or (ay == 8 and gun <= 22):
+                            return "Aslan"
+                        elif (ay == 8 and gun >= 23) or (ay == 9 and gun <= 22):
+                            return "Başak"
+                        elif (ay == 9 and gun >= 23) or (ay == 10 and gun <= 22):
+                            return "Terazi"
+                        elif (ay == 10 and gun >= 23) or (ay == 11 and gun <= 21):
+                            return "Akrep"
+                        elif (ay == 11 and gun >= 22) or (ay == 12 and gun <= 21):
+                            return "Yay"
+                        elif (ay == 12 and gun >= 22) or (ay == 1 and gun <= 19):
+                            return "Oğlak"
+                        elif (ay == 1 and gun >= 20) or (ay == 2 and gun <= 18):
+                            return "Kova"
+                        else:
+                            return "Balık"
 
                     gunes_burcu = burc_hesapla(dogum_gun, dogum_ay)
                     
-                    # Ay ve diğer gezegenler için simüle edilmiş ama tarihe göre değişen uyumlu indeksler
                     ay_listesi = ["Koç", "Boğa", "İkizler", "Yengeç", "Aslan", "Başak", "Terazi", "Akrep", "Yay", "Oğlak", "Kova", "Balık"]
                     ay_burcu = ay_listesi[(dogum_gun + dogum_ay) % 12]
                     merkur_burcu = ay_listesi[(dogum_gun * 2) % 12]
