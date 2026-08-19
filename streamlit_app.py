@@ -7,6 +7,12 @@ import urllib.parse
 import noisereduce as nr
 from datetime import datetime, timedelta
 
+# --- ASTROLOJİ KÜTÜPHANELERİ ---
+from flatlib.datetime import Datetime
+from flatlib.geopos import GeoPos
+from flatlib.chart import Chart
+from flatlib import const
+
 # --- SAYFA YAPILANDIRMASI ---
 st.set_page_config(page_title="Ruhun Mimarisi | VBAR Biyometrik Analiz", layout="centered", page_icon="🔬")
 
@@ -102,7 +108,7 @@ if "olcum_gecmisi" not in st.session_state: st.session_state.olcum_gecmisi = []
 # Eski key formatından kalma bir hata olmasın diye anahtar dönüştürücü
 for kayit in st.session_state.olcum_gecmisi:
     if 'gerilim' not in kayit and 'zcr' in kayit:
-        kayit['gerilim'] = kayit['zcr'] * 50  # Eski ölçeği yeniye uyarla
+        kayit['gerilim'] = kayit['zcr'] * 50
 
 with tab3:
     st.subheader("📜 Zaman Akışı ve Haftalık Aritmetik Ortalama Arşivi")
@@ -158,8 +164,16 @@ with tab3:
             """, unsafe_allow_html=True)
 
 with tab1:
-    st.subheader("1. Aşama: Gelişmiş Ses Verisi Girişi")
+    st.subheader("1. Aşama: Gelişmiş Ses ve Doğum Bilgisi Girişi")
     
+    # Kullanıcının doğum haritası analizi için opsiyonel doğum bilgisi alanları
+    with st.expander("✨ Astro-Akustik Sentez İçin Doğum Bilgileri (İsteğe Bağlı)"):
+        col_d1, col_d2 = st.columns(2)
+        with col_d1:
+            astro_dogum_tarihi = st.date_input("Doğum Tarihi", value=datetime(1981, 8, 9))
+        with col_d2:
+            astro_dogum_saati = st.text_input("Doğum Saati (HH:MM)", value="12:00")
+            
     upload_option = st.radio("Ses Verisi Sağlama Yöntemi:", ["Mikrofon ile Kayıt Yap", "Ses Dosyası Yükle (.mp3, .wav)"])
 
     audio_bytes = None
@@ -180,7 +194,6 @@ with tab1:
             with st.spinner("Ses spektrumu, enerji dağılımı ve vokal tınılar analiz ediliyor..."):
                 y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
                 
-                # SES KONTROLÜ (Boş kayıt koruması)
                 rms_enerji_kontrol = np.mean(librosa.feature.rms(y=y))
                 
                 if rms_enerji_kontrol < 0.01:
@@ -205,13 +218,27 @@ with tab1:
                         "f0": st.session_state.f0_val,
                         "gerilim": st.session_state.gerilim_val
                     })
+                    
+                    # Flatlib ile dinamik Ay Düğümü hesaplama örneği (Güvenli try-except bloklu)
+                    astro_yorum_metni = ""
+                    try:
+                        d_str = astro_dogum_tarihi.strftime("%Y/%m/%d")
+                        dt = Datetime(d_str, astro_dogum_saati, '+03:00')
+                        pos = GeoPos('41N59', '27E57') # Saray/Tekirdağ baz koordinat veya standart
+                        chart = Chart(dt, pos)
+                        nn_sign = chart.get(const.NORTH_NODE).sign
+                        sn_sign = chart.get(const.SOUTH_NODE).sign
+                        astro_yorum_metni = f"<br><br>🔮 <b>Astro-Akustik Bağlantı:</b> Doğum haritanızdaki Ay Düğümü aksı (KAD: {nn_sign} / GAD: {sn_sign}) ile sesinizdeki {st.session_state.f0_val:.1f} Hz frekans enerjisi, anlık zihinsel akışınızla kozmik döngünüz arasında uyumlu bir köprü kuruyor."
+                    except Exception as e:
+                        astro_yorum_metni = "<br><br>🔮 <i>Doğum saati veya formatı kontrol edilerek astro-akustik sentez eklenebilir.</i>"
                 
                     st.markdown(f"""
                     <div class="report-box">
                         <h3 style="color: #1b263b; margin-top: 0;">Gelişmiş Akustik Biyometrik Rapor</h3>
                         <p><b>Temel Frekans (F0):</b> {st.session_state.f0_val:.1f} Hz</p>
                         <p><b>Gerilim / Enerji İndeksi:</b> {st.session_state.gerilim_val:.2f}</p>
-                        <p style="font-size: 0.85em; color: #666;"><i>Bu ölçüm spektral analiz motoruyla hesaplanarak arşive eklendi.</i></p>
+                        <p style="font-size: 0.9em; color: #3a3229;">{astro_yorum_metni}</p>
+                        <p style="font-size: 0.85em; color: #666; margin-top: 10px;"><i>Bu ölçüm spektral analiz motoruyla hesaplanarak arşive eklendi.</i></p>
                     </div>
                     """, unsafe_allow_html=True)
                     
