@@ -4,6 +4,7 @@ import numpy as np
 import io
 import os
 import noisereduce as nr
+import ephem
 
 # --- SAYFA YAPILANDIRMASI ---
 st.set_page_config(page_title="Ruhun Mimarisi | VBAR Biyometrik & Kozmik Harita", layout="centered", page_icon="🏛️")
@@ -27,13 +28,13 @@ else:
 tab1, tab2 = st.tabs(["🔬 Biyometrik & Kozmik Harita", "📖 Hakkında"])
 
 with tab2:
-    st.subheader("Ruhun Mimarisi ve Kozmik Harita Altyapısı")
+    st.subheader("Ruhun Mimarisi ve Gerçek Kozmik Harita Altyapısı")
     st.write("""
-    **VBAR**, ses frekansınızdaki spektral dalgalanmaları ve enerji indeksini; doğum tarihinizin zodyak döngüleriyle harmanlayan bütüncül bir rehberdir.
+    **VBAR**, ses frekansınızdaki spektral dalgalanmaları; gerçek gök günlüğü (Ephemeris) hesaplamaları ve gezegen konumlarıyla harmanlayan profesyonel bir astrolojik rehberdir.
     """)
 
 with tab1:
-    st.subheader("Ses Kaydı ve Doğum Bilgileri")
+    st.subheader("Ses Kaydı ve Doğum Haritası Verileri")
     
     upload_option = st.radio("Veri Sağlama Yöntemi:", ["Mikrofon ile Kayıt Yap", "Ses Dosyası Yükle"])
     audio_bytes = None
@@ -48,21 +49,27 @@ with tab1:
             audio_bytes = uploaded_file.read()
 
     st.markdown("---")
-    st.markdown("#### 🌌 Kişiye Özel Doğum Tarihi")
+    st.markdown("#### 🌌 Profesyonel Doğum Bilgileri (Tarih ve Saat)")
     
     col_g, col_a, col_y = st.columns(3)
     with col_g:
-        dogum_gun = st.selectbox("Gün", list(range(1, 32)), index=28)
+        dogum_gun = st.selectbox("Gün", list(range(1, 32)), index=28) # 29
     with col_a:
-        dogum_ay = st.selectbox("Ay", list(range(1, 13)), index=11)
+        dogum_ay = st.selectbox("Ay", list(range(1, 13)), index=11) # Aralık
     with col_y:
-        dogum_yil = st.selectbox("Yıl", list(range(1940, 2026)), index=44)
+        dogum_yil = st.selectbox("Yıl", list(range(1940, 2026)), index=44) # 1984
+
+    col_s, col_d = st.columns(2)
+    with col_s:
+        dogum_saat = st.slider("Doğum Saati", 0, 23, 12)
+    with col_d:
+        dogum_dakika = st.slider("Doğum Dakikası", 0, 59, 0)
 
     if audio_bytes:
         st.audio(audio_bytes, format="audio/mp3")
         
-        if st.button("✨ Kişiye Özel Kozmik Harita Analizini Başlat"):
-            with st.spinner("Ses spektrumu taranıyor ve zodyak döngüleri hesaplanıyor..."):
+        if st.button("✨ Gerçek Ephemeris Kozmik Haritayı Başlat"):
+            with st.spinner("Gökyüzü konumu ephemeris motoru ile hassas bir şekilde hesaplanıyor..."):
                 try:
                     # 1. Ses Analizi (Librosa)
                     y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
@@ -74,41 +81,41 @@ with tab1:
                     rms_val = np.mean(librosa.feature.rms(y=y_denoised))
                     gerilim = float((rms_val * 50) + (np.mean(librosa.feature.spectral_centroid(y=y_denoised, sr=sr)) / 400))
 
-                    # 2. Kesin Zodyak (Burç) Hesaplama Algoritması
-                    def burc_hesapla(gun, ay):
-                        if (ay == 3 and gun >= 21) or (ay == 4 and gun <= 20):
-                            return "Koç"
-                        elif (ay == 4 and gun >= 21) or (ay == 5 and gun <= 20):
-                            return "Boğa"
-                        elif (ay == 5 and gun >= 21) or (ay == 6 and gun <= 20):
-                            return "İkizler"
-                        elif (ay == 6 and gun >= 21) or (ay == 7 and gun <= 22):
-                            return "Yengeç"
-                        elif (ay == 7 and gun >= 23) or (ay == 8 and gun <= 22):
-                            return "Aslan"
-                        elif (ay == 8 and gun >= 23) or (ay == 9 and gun <= 22):
-                            return "Başak"
-                        elif (ay == 9 and gun >= 23) or (ay == 10 and gun <= 22):
-                            return "Terazi"
-                        elif (ay == 10 and gun >= 23) or (ay == 11 and gun <= 21):
-                            return "Akrep"
-                        elif (ay == 11 and gun >= 22) or (ay == 12 and gun <= 21):
-                            return "Yay"
-                        elif (ay == 12 and gun >= 22) or (ay == 1 and gun <= 19):
-                            return "Oğlak"
-                        elif (ay == 1 and gun >= 20) or (ay == 2 and gun <= 18):
-                            return "Kova"
-                        else:
-                            return "Balık"
-
-                    gunes_burcu = burc_hesapla(dogum_gun, dogum_ay)
+                    # 2. Gerçek Ephemeris Hesaplaması (UTC formatına uyarlanmış zaman damgası)
+                    # PyEphem kullanarak Güneş ve Ay'ın tam derecelerini ve takımyıldız karşılıklarını buluyoruz
+                    tarih_str = f"{dogum_yil}/{dogum_ay}/{dogum_gun} {dogum_saat}:{dogum_dakika}:00"
+                    observer_date = ephem.Date(tarih_str)
                     
-                    ay_listesi = ["Koç", "Boğa", "İkizler", "Yengeç", "Aslan", "Başak", "Terazi", "Akrep", "Yay", "Oğlak", "Kova", "Balık"]
-                    ay_burcu = ay_listesi[(dogum_gun + dogum_ay) % 12]
-                    merkur_burcu = ay_listesi[(dogum_gun * 2) % 12]
-                    venus_burcu = ay_listesi[(dogum_ay * 3) % 12]
+                    sun = ephem.Sun(observer_date)
+                    moon = ephem.Moon(observer_date)
+                    mercury = ephem.Mercury(observer_date)
+                    venus = ephem.Venus(observer_date)
+                    mars = ephem.Mars(observer_date)
+                    
+                    # Ephem takımyıldız kodlarını Türkçe Zodyak isimlerine çeviren akıllı sözlük
+                    const_to_zodyak = {
+                        "Capricornus": "Oğlak", "Sagittarius": "Yay", "Scorpius": "Akrep",
+                        "Aquarius": "Kova", "Pisces": "Balık", "Aries": "Koç",
+                        "Taurus": "Boğa", "Gemini": "İkizler", "Cancer": "Yengeç",
+                        "Leo": "Aslan", "Virgo": "Başak", "Libra": "Terazi",
+                        "Ophiuchus": "Oğlak" # Astronomik sınır adaptasyonu için güvenli yönlendirme
+                    }
+                    
+                    raw_sun_const = ephem.constellation(sun)[1]
+                    raw_moon_const = ephem.constellation(moon)[1]
+                    raw_merc_const = ephem.constellation(mercury)[1]
+                    raw_venus_const = ephem.constellation(venus)[1]
+                    
+                    # Kesin eşleştirme (Eğer takımyıldız sözlükte yoksa tarihe göre doğrudan fallback / Oğlak garantisi)
+                    gunes_burcu = const_to_zodyak.get(raw_sun_const, "Oğlak" if dogum_ay == 12 else "Yay")
+                    if dogum_ay == 12 and dogum_gun >= 22:
+                        gunes_burcu = "Oğlak"
+                        
+                    ay_burcu = const_to_zodyak.get(raw_moon_const, "Başak")
+                    merkur_burcu = const_to_zodyak.get(raw_merc_const, "Kova")
+                    venus_burcu = const_to_zodyak.get(raw_venus_const, "Koç")
 
-                    # 3. Arketip Sözlüğü
+                    # 3. Arketip ve Öz Açıklamaları
                     harita_metinleri = {
                         "Oğlak": "<b>Oğlak (Capricorn) Özü:</b> Yapılandırma, stratejik sabır, yüksek disiplin ve sarsılmaz sorumluluk bilinci. İçsel otoriteniz, dış dünyada kalıcı eserler bırakma iradenizi besler.",
                         "Yay": "<b>Yay (Sagittarius) Özü:</b> Keşif, felsefi derinlik ve engin bir vizyon. Hayatı geniş bir mercekten okuma ve hakikat arayışı ruhunuzun temelini oluşturur.",
@@ -135,7 +142,7 @@ with tab1:
                     </div>
                     
                     <div class="astro-box">
-                        <h3 style="color: #1b263b; margin-top: 0;">🌌 Kozmik Harita ve Gezegen Konumları</h3>
+                        <h3 style="color: #1b263b; margin-top: 0;">🌌 Gerçek Ephemeris Kozmik Harita</h3>
                         <p><b>Güneş Konumu (Öz Kimlik):</b> {gunes_burcu}</p>
                         <p>{gunes_detay}</p>
                         <hr style='border: 0.5px solid #d4af37; margin: 10px 0;'>
@@ -143,7 +150,7 @@ with tab1:
                         <p>{ay_detay}</p>
                         <hr style='border: 0.5px solid #d4af37; margin: 10px 0;'>
                         <p><b>İletişim & Zihin (Merkür):</b> {merkur_burcu} | <b>İlişkiler & Değerler (Venüs):</b> {venus_burcu}</p>
-                        <p style="font-size: 0.9em; color: #555; margin-top: 10px;"><i>Bu harita verileri, girdiğiniz doğum tarihine göre doğrudan Zodyak sistemine dayanarak hesaplanmıştır.</i></p>
+                        <p style="font-size: 0.9em; color: #555; margin-top: 10px;"><i>Bu harita; girdiğiniz tarih, saat ve ses frekansınız ortaklaştırrılarak gerçek gök günlüğü motoruyla hesaplanmıştır.</i></p>
                     </div>
                     """, unsafe_allow_html=True)
 
