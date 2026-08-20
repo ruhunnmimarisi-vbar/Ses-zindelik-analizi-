@@ -88,17 +88,12 @@ with tab1:
                     gerilim = float((np.mean(librosa.feature.rms(y=y_denoised)) * 50) + (np.mean(librosa.feature.spectral_centroid(y=y_denoised, sr=sr)) / 400))
 
                     # --- SWISS EPHEMERIS HESAPLAMA MOTORU ---
-                    # Türkiye Yerel Saati (UTC+3) -> UTC'ye çevrim
                     utc_saat = (dogum_saat - 3) % 24
                     jd_ut = swe.julday(dogum_yil, dogum_ay, dogum_gun, utc_saat + (dogum_dakika / 60.0))
 
                     def get_zodiac_sign_from_lon(lon_deg):
                         burclar = ["Koç", "Boğa", "İkizler", "Yengeç", "Aslan", "Başak", "Terazi", "Akrep", "Yay", "Oğlak", "Kova", "Balık"]
                         return burclar[int((lon_deg % 360) // 30)]
-
-                    def get swe_planet_sign(planet_id, jd):
-                        res = swe.calc_ut(jd, planet_id)
-                        return get_zodiac_sign_from_lon(res[0][0])
 
                     # Gezegen Konumları (Güneş, Ay, Merkür, Venüs)
                     gunes_burcu = get_zodiac_sign_from_lon(swe.calc_ut(jd_ut, swe.SUN)[0][0])
