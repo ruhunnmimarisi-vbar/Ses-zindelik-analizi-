@@ -30,7 +30,7 @@ tab1, tab2 = st.tabs(["🔬 Biyometrik & Kozmik Harita", "📖 Hakkında"])
 with tab2:
     st.subheader("Ruhun Mimarisi ve Gerçek Kozmik Harita Altyapısı")
     st.write("""
-    **VBAR**, ses frekansınızdaki spektral dalgalanmaları; gerçek gök günlüğü (Ephemeris) hesaplamaları ve gezegen konumlarıyla harmanlayan profesyonel bir astrolojik rehberdir.
+    **VBAR**, ses frekansınızdaki spektral dalgalanmaları; gerçek gök günlüğü (Ephemeris) hesaplamaları ve tropikal zodyak konumlarıyla harmanlayan profesyonel bir rehberdir.
     """)
 
 with tab1:
@@ -69,7 +69,7 @@ with tab1:
         st.audio(audio_bytes, format="audio/mp3")
         
         if st.button("✨ Gerçek Ephemeris Kozmik Haritayı Başlat"):
-            with st.spinner("Gökyüzü konumu ephemeris motoru ile hassas bir şekilde hesaplanıyor..."):
+            with st.spinner("Gökyüzü konumu tropikal zodyak derecelerine göre hesaplanıyor..."):
                 try:
                     # 1. Ses Analizi (Librosa)
                     y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
@@ -81,7 +81,23 @@ with tab1:
                     rms_val = np.mean(librosa.feature.rms(y=y_denoised))
                     gerilim = float((rms_val * 50) + (np.mean(librosa.feature.spectral_centroid(y=y_denoised, sr=sr)) / 400))
 
-                    # 2. Gerçek Ephemeris Hesaplaması
+                    # 2. Hassas Tropikal Zodyak Derece Hesaplama Fonksiyonu
+                    def get_zodiac_sign(body_obj):
+                        # Gök cisminin ekliptik koordinatlarını (boylam) alıyoruz
+                        ecl = epph = ephem.Equatorial(body_obj.ra, body_obj.dec, epoch=body_obj.date)
+                        # Ecliptic dönüşümü
+                        ecl = ephem.Ecliptic(ecl)
+                        lon_deg = float(ecl.lon) * 180.0 / np.pi # Radyanı dereceye çevir
+                        
+                        # 30'ar derecelik dilimlere bölerek burç bulma
+                        burclar = [
+                            "Koç", "Boğa", "İkizler", "Yengeç", 
+                            "Aslan", "Başak", "Terazi", "Akrep", 
+                            "Yay", "Oğlak", "Kova", "Balık"
+                        ]
+                        index = int((lon_deg % 360) // 30)
+                        return burclar[index]
+
                     tarih_str = f"{dogum_yil}/{dogum_ay}/{dogum_gun} {dogum_saat}:{dogum_dakika}:00"
                     observer_date = ephem.Date(tarih_str)
                     
@@ -90,34 +106,24 @@ with tab1:
                     mercury = ephem.Mercury(observer_date)
                     venus = ephem.Venus(observer_date)
                     
-                    const_to_zodyak = {
-                        "Capricornus": "Oğlak", "Sagittarius": "Yay", "Scorpius": "Akrep",
-                        "Aquarius": "Kova", "Pisces": "Balık", "Aries": "Koç",
-                        "Taurus": "Boğa", "Gemini": "İkizler", "Cancer": "Yengeç",
-                        "Leo": "Aslan", "Virgo": "Başak", "Libra": "Terazi",
-                        "Ophiuchus": "Oğlak"
-                    }
-                    
-                    raw_sun_const = ephem.constellation(sun)[1]
-                    raw_moon_const = ephem.constellation(moon)[1]
-                    raw_merc_const = ephem.constellation(mercury)[1]
-                    raw_venus_const = ephem.constellation(venus)[1]
-                    
-                    gunes_burcu = const_to_zodyak.get(raw_sun_const, "Oğlak" if dogum_ay == 12 else "Yay")
-                    if dogum_ay == 12 and dogum_gun >= 22:
-                        gunes_burcu = "Oğlak"
-                        
-                    ay_burcu = const_to_zodyak.get(raw_moon_const, "Başak")
-                    merkur_burcu = const_to_zodyak.get(raw_merc_const, "Kova")
-                    venus_burcu = const_to_zodyak.get(raw_venus_const, "Koç")
+                    sun.compute(observer_date)
+                    moon.compute(observer_date)
+                    mercury.compute(observer_date)
+                    venus.compute(observer_date)
 
+                    gunes_burcu = get_zodiac_sign(sun)
+                    ay_burcu = get_zodiac_sign(moon)
+                    merkur_burcu = get_zodiac_sign(mercury)
+                    venus_burcu = get_zodiac_sign(venus)
+
+                    # 3. Arketip ve Öz Açıklamaları
                     harita_metinleri = {
                         "Oğlak": "<b>Oğlak (Capricorn) Özü:</b> Yapılandırma, stratejik sabır, yüksek disiplin ve sarsılmaz sorumluluk bilinci.",
                         "Yay": "<b>Yay (Sagittarius) Özü:</b> Keşif, felsefi derinlik ve engin bir vizyon.",
                         "Akrep": "<b>Akrep (Scorpio) Özü:</b> Dönüşüm, mutlak sadakat ve derin sezgisel güç.",
                         "Kova": "<b>Kova (Aquarius) Özü:</b> Evrensel vizyon, özgürlük ve yenilikçi zihin.",
                         "Balık": "<b>Balık (Pisces) Özü:</b> Şefkat, evrensel akış ve sınırsız sezgi.",
-                        "Koç": "<b>Koç (Aries) Özü:</b> Öncü ateş, cesaret ve saf irade.",
+                        "Koç": "<b>Koç (Aries) Özü:</b> Öncü ateş, cesaret, dinamizm ve saf irade.",
                         "Boğa": "<b>Boğa (Taurus) Özü:</b> Toprağın dinginliği, kararlılık ve estetik değerler.",
                         "İkizler": "<b>İkizler (Gemini) Özü:</b> Zihinsel çeviklik ve çok yönlü iletişim.",
                         "Yengeç": "<b>Yengeç (Cancer) Özü:</b> Duygusal hafıza ve koruyuculuk.",
@@ -127,7 +133,7 @@ with tab1:
                     }
 
                     gunes_detay = harita_metinleri.get(gunes_burcu, "Güneş enerjisi aktif.")
-                    ay_detay = harita_metinleri.get(ay_burcu, "Duygusal katmanda derin sezgisel akış.")
+                    ay_detay = harita_metinleri.get(ay_burcu, "Duygusal katmanda derin akış.")
 
                     st.markdown(f"""
                     <div class="report-card">
@@ -145,7 +151,7 @@ with tab1:
                         <p>{ay_detay}</p>
                         <hr style='border: 0.5px solid #d4af37; margin: 10px 0;'>
                         <p><b>İletişim & Zihin (Merkür):</b> {merkur_burcu} | <b>İlişkiler & Değerler (Venüs):</b> {venus_burcu}</p>
-                        <p style="font-size: 0.9em; color: #555; margin-top: 10px;"><i>Bu harita; girdiğiniz tarih, saat ve ses frekansınız ortaklaştırılarak gerçek gök günlüğü motoruyla hesaplanmıştır.</i></p>
+                        <p style="font-size: 0.9em; color: #555; margin-top: 10px;"><i>Bu harita; girdiğiniz tarih ve saat verilerinin ekliptik boylam dereceleri baz alınarak tropikal zodyak sistemine göre hesaplanmıştır.</i></p>
                     </div>
                     """, unsafe_allow_html=True)
 
