@@ -91,8 +91,9 @@ with tab1:
                     observer = ephem.Observer()
                     observer.lat = str(lat_val)
                     observer.lon = str(lon_val)
-                    observer.elevation = 150
+                    observer.elevation = 0
 
+                    # Türkiye yerel saati (UTC+3) baz alınarak UTC'ye çevrim
                     utc_saat = (dogum_saat - 3) % 24
                     tarih_str = f"{dogum_yil}/{dogum_ay}/{dogum_gun} {utc_saat}:{dogum_dakika}:00"
                     observer.date = ephem.Date(tarih_str)
@@ -115,26 +116,28 @@ with tab1:
                     merkur_burcu = get_zodiac_sign(mercury, observer.date)
                     venus_burcu = get_zodiac_sign(venus, observer.date)
 
-                    # --- KUSURSUZ COĞRAFİ YÜKSELEN (ASCENDANT) HESAPLAMA ---
-                    gmst = observer.sidereal_time() # Greenwich Ortalama Yıldız Zamanı (radyan)
-                    lmst = float(gmst) + float(observer.lon) # Yerel Yıldız Zamanı
-                    eps = 23.43929 - 0.0130042 * ((ephem.julian_date(observer.date) - 2451545.0) / 36525.0)
-                    eps_rad = np.radians(eps)
+                    # --- KUSURSUZ YEREL YILDIZ ZAMANI VE YÜKSELEN (ASCENDANT) HESABI ---
+                    gmst = float(observer.sidereal_time())  # Radyan cinsinden Greenwich Ortalama Yıldız Zamanı
+                    lmst_rad = gmst + float(observer.lon)   # Yerel Yıldız Zamanı (radyan)
+                    
+                    # Ekliptik Eğiklik (Epsilon)
+                    j_date = ephem.julian_date(observer.date)
+                    T_centuries = (j_date - 2451545.0) / 36525.0
+                    eps_deg = 23.4392911 - 0.0130042 * T_centuries
+                    eps_rad = np.radians(eps_deg)
                     lat_rad = float(observer.lat)
 
-                    # Doğru Asenciyan / Yükselen Derecesi Trigonometrisi
-                    y_val = np.sin(lmst)
-                    x_val = np.cos(lmst) * np.cos(eps_rad) + np.tan(lat_rad) * np.sin(eps_rad)
+                    # Doğru Asenciyan (Ascendant) Formülasyonu
+                    # Yükselen Derecesi = atan2( sin(LMST), cos(LMST) * cos(eps) + tan(lat) * sin(eps) )
+                    y_val = np.sin(lmst_rad)
+                    x_val = np.cos(lmst_rad) * np.cos(eps_rad) + np.tan(lat_rad) * np.sin(eps_rad)
                     
-                    asc_rad = np.arctan2(y_val, x_val)
+                    asc_rad = np.arctan2(-y_val, -x_val) + np.pi  # 0 - 2pi aralığına tam oturtma
                     asc_lon_deg = np.degrees(asc_rad) % 360
                     yukselen_burc = get_zodiac_sign_from_lon(asc_lon_deg)
 
                     # --- HASSAS KAD VE GAD HESAPLAMA ---
-                    j_date = ephem.julian_date(observer.date)
-                    T_centuries = (j_date - 2451545.0) / 36525.0
                     node_lon_deg = (125.04452 - 1934.136261 * T_centuries + 0.0020708 * (T_centuries**2)) % 360
-                    
                     kad_burcu = get_zodiac_sign_from_lon(node_lon_deg)
                     gad_lon = (node_lon_deg + 180.0) % 360
                     gad_burcu = get_zodiac_sign_from_lon(gad_lon)
