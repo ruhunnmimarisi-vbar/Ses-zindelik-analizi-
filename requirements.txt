@@ -1,8 +1,5 @@
 streamlit
-librosa
 numpy
-soundfile
 noisereduce
+librosa
 flatlib
-
-
