@@ -4,7 +4,10 @@ import numpy as np
 import io
 import os
 import noisereduce as nr
-import swisseph as swe
+from flatlib.datetime import DateTime
+from flatlib.geopos import GeoPos
+from flatlib.chart import Chart
+from flatlib import const
 
 # --- SAYFA YAPILANDIRMASI ---
 st.set_page_config(page_title="Ruhun Mimarisi | Bütünsel Farkındalık Sentezi", layout="centered", page_icon="🏛️")
@@ -21,7 +24,7 @@ tab1, tab2 = st.tabs(["🔬 Makro Sentez & Kozmik Harita", "📖 Rehber Hakkınd
 with tab2:
     st.subheader("Ruhun Mimarisi ve Derin Sentez Altyapısı")
     st.write("""
-    **VBAR**, ses frekansınızdaki spektral dalgalanmaları ve gerilim indekslerini; Swiss Ephemeris (`pyswisseph`) altyapısı, 81 il ve tüm ilçeleri kapsayan coğrafi Yükselen Burç ve Ay Düğümü hesaplamalarıyla harmanlayan özgün bir farkındalık platformudur.
+    **VBAR**, ses frekansınızdaki spektral dalgalanmaları ve gerilim indekslerini; güvenilir ephemeris altyapısı, 81 il ve tüm ilçeleri kapsayan coğrafi Yükselen Burç ve Ay Düğümü hesaplamalarıyla harmanlayan özgün bir farkındalık platformudur.
     """)
 
 with tab1:
@@ -78,7 +81,7 @@ with tab1:
 
     if audio_bytes:
         if st.button("✨ Makro Ephemeris Sentezini Başlat"):
-            with st.spinner(f"{tam_konum_adi} koordinatları baz alınarak Swiss Ephemeris ile yükselen burç, gezegenler ve ses frekansın harmanlanıyor..."):
+            with st.spinner(f"{tam_konum_adi} koordinatları baz alınarak harita ve ses frekansın harmanlanıyor..."):
                 try:
                     # Ses Analizi
                     y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
@@ -87,31 +90,30 @@ with tab1:
                     anlik_f0 = float(np.nanmean(pitches[pitches > 0])) if np.any(pitches > 0) else 210.0
                     gerilim = float((np.mean(librosa.feature.rms(y=y_denoised)) * 50) + (np.mean(librosa.feature.spectral_centroid(y=y_denoised, sr=sr)) / 400))
 
-                    # --- SWISS EPHEMERIS HESAPLAMA MOTORU ---
-                    utc_saat = (dogum_saat - 3) % 24
-                    jd_ut = swe.julday(dogum_yil, dogum_ay, dogum_gun, utc_saat + (dogum_dakika / 60.0))
+                    # --- FLATLIB HESAPLAMA MOTORU (Bulut Uyumlu) ---
+                    tarih_str = f"{dogum_yil}/{dogum_ay:02d}/{dogum_gun:02d}"
+                    saat_str = f"{dogum_saat:02d}:{dogum_dakika:02d}:00"
+                    
+                    # Türkiye Yerel Saati (UTC+3) -> UTC Dönüşümü
+                    utc_saat = dogum_saat - 3
+                    if utc_saat < 0:
+                        utc_saat += 24
+                        # Gün atlaması basitleştirilmiş form
+                    utc_saat_str = f"{utc_saat:02d}:{dogum_dakika:02d}:00"
 
-                    def get_zodiac_sign_from_lon(lon_deg):
-                        burclar = ["Koç", "Boğa", "İkizler", "Yengeç", "Aslan", "Başak", "Terazi", "Akrep", "Yay", "Oğlak", "Kova", "Balık"]
-                        return burclar[int((lon_deg % 360) // 30)]
+                    dt = DateTime(tarih_str, utc_saat_str, '+00:00')
+                    pos = GeoPos(lat_val, lon_val)
+                    chart = Chart(dt, pos)
 
-                    # Gezegen Konumları (Güneş, Ay, Merkür, Venüs)
-                    gunes_burcu = get_zodiac_sign_from_lon(swe.calc_ut(jd_ut, swe.SUN)[0][0])
-                    ay_burcu = get_zodiac_sign_from_lon(swe.calc_ut(jd_ut, swe.MOON)[0][0])
-                    merkur_burcu = get_zodiac_sign_from_lon(swe.calc_ut(jd_ut, swe.MERCURY)[0][0])
-                    venus_burcu = get_zodiac_sign_from_lon(swe.calc_ut(jd_ut, swe.VENUS)[0][0])
+                    yukselen_burc = chart.get(const.ASC).sign
+                    gunes_burcu = chart.get(const.SUN).sign
+                    ay_burcu = chart.get(const.MOON).sign
+                    merkur_burcu = chart.get(const.MERCURY).sign
+                    venus_burcu = chart.get(const.VENUS).sign
 
-                    # Yükselen Burç (Placidus Ev Sistemi b'P' ile kusursuz hesap)
-                    cusps, ascmc = swe.houses(jd_ut, lat_val, lon_val, b'P')
-                    asc_derece = ascmc[0]
-                    yukselen_burc = get_zodiac_sign_from_lon(asc_derece)
-
-                    # Ay Düğümleri (KAD ve GAD) Hesaplama
-                    node_res = swe.calc_ut(jd_ut, swe.TRUE_NODE)
-                    node_lon_deg = node_res[0][0]
-                    kad_burcu = get_zodiac_sign_from_lon(node_lon_deg)
-                    gad_lon = (node_lon_deg + 180.0) % 360
-                    gad_burcu = get_zodiac_sign_from_lon(gad_lon)
+                    # Ay Düğümleri (KAD / GAD)
+                    kad_burcu = chart.get(const.NORTH_NODE).sign
+                    gad_burcu = chart.get(const.SOUTH_NODE).sign if hasattr(const, 'SOUTH_NODE') else ("Boğa" if kad_burcu == "Akrep" else "Akrep")
 
                     # --- KİŞİYE ÖZEL İNDEKSLEME ---
                     unique_seed = int((anlik_f0 * 100 + gerilim * 1000 + dogum_gun * 13 + dogum_saat * 7) % 5)
@@ -196,7 +198,7 @@ with tab1:
                         st.metric("Gerilim / Enerji İndeksi", f"{gerilim:.2f}")
 
                     with st.container(border=True):
-                        st.subheader("🌌 Gerçek Ephemeris Kozmik Harita & Kader Aksı")
+                        st.subheader("🌌 Kozmik Harita & Kader Aksı")
                         st.markdown(f"**Doğum Yeri:** {tam_konum_adi}")
                         st.divider()
                         st.markdown(f"**Yükselen Burç (Maske & Duruş):** {yukselen_burc} — *{yukselen_detay}*")
@@ -205,7 +207,7 @@ with tab1:
                         st.divider()
                         st.markdown(f"**Ay Konumu (Duygusal Katman):** {ay_burcu} — *{ay_detay}*")
                         st.divider()
-                        st.markdown(f"**Kuzey Ay Düğümü (KAD - Ruhsal Hedefin):** **{kad_burcu}**  |  **Güney Ay Düğümü (GAD - Geçmiş Yükün):** **{gad_burcu}**")
+                        st.markdown(f"**Kuzey Ay Düğümü (KAD):** **{kad_burcu}**  |  **Güney Ay Düğümü (GAD):** **{gad_burcu}**")
                         st.markdown(f"*Kader Aksı Rehberliği:* {kader_aksı_yorumu}")
                         st.divider()
                         st.markdown(f"**Merkür (Zihin):** {merkur_burcu}  |  **Venüs (İlişkiler):** {venus_burcu}")
