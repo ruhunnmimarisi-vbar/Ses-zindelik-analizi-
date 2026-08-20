@@ -115,17 +115,19 @@ with tab1:
                     merkur_burcu = get_zodiac_sign(mercury, observer.date)
                     venus_burcu = get_zodiac_sign(venus, observer.date)
 
-                    # --- COĞRAFİ YÜKSELEN (ASCENDANT) HESAPLAMA ---
-                    gmst = observer.sidereal_time()
-                    lmst = float(gmst) + float(observer.lon)
-                    eps = 23.4369 * np.pi / 180.0 
+                    # --- KUSURSUZ COĞRAFİ YÜKSELEN (ASCENDANT) HESAPLAMA ---
+                    gmst = observer.sidereal_time() # Greenwich Ortalama Yıldız Zamanı (radyan)
+                    lmst = float(gmst) + float(observer.lon) # Yerel Yıldız Zamanı
+                    eps = 23.43929 - 0.0130042 * ((ephem.julian_date(observer.date) - 2451545.0) / 36525.0)
+                    eps_rad = np.radians(eps)
                     lat_rad = float(observer.lat)
 
-                    y_val = np.cos(lmst)
-                    x_val = -(np.sin(lmst) * np.cos(eps) + np.tan(lat_rad) * np.sin(eps))
+                    # Doğru Asenciyan / Yükselen Derecesi Trigonometrisi
+                    y_val = np.sin(lmst)
+                    x_val = np.cos(lmst) * np.cos(eps_rad) + np.tan(lat_rad) * np.sin(eps_rad)
                     
                     asc_rad = np.arctan2(y_val, x_val)
-                    asc_lon_deg = (asc_rad * 180.0 / np.pi) % 360
+                    asc_lon_deg = np.degrees(asc_rad) % 360
                     yukselen_burc = get_zodiac_sign_from_lon(asc_lon_deg)
 
                     # --- HASSAS KAD VE GAD HESAPLAMA ---
@@ -192,7 +194,6 @@ with tab1:
                         "Terazi": "İlahi denge, adalet, estetik uyum."
                     }
 
-                    # --- KAD - GAD DETAYLI YORUM SÖZLÜĞÜ ---
                     kad_gad_detaylari = {
                         ("Akrep", "Boğa"): "Bu aks, maddi ve manevi güvenlik alanından (Boğa) çıkıp, hayatın dönüştürücü krizleriyle yüzleşmeye ve ruhsal derinliğe (Akrep) adım atmayı öğreten köklü bir evrim yoludur.",
                         ("Boğa", "Akrep"): "Krizlerden ve karmaşık bağlardan arınıp; hayatın somut, huzurlu, sade ve topraklanmış güzelliklerini (Boğa) inşa etme zamanını müjdeler.",
