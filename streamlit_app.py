@@ -142,7 +142,7 @@ with tab1:
 * **Zihin ve İletişim ({merkur_burcu}) / Değerler ve Bağlar ({venus_burcu}):** Düşüncelerini ifade ediş biçimin ile hayatı kavrayış estetiğin bu iki gezegenin arketipleriyle şekillenir.
 
 ### 3. Akustik Biyometrik ve Enerjitik Analiz
-* **Temel Frekans ($F_0$):** `{anlik_f0:.1f} Hz` değerindeki bu frekans, ses tellerinin o anki fiziksel ve enerjik salınımını temsil eder.
+* **Temel Frekans (F0):** `{anlik_f0:.1f} Hz` değerindeki bu frekans, ses tellerinin o anki fiziksel ve enerjik salınımını temsil eder.
 * **Gerilim / Yoğunluk İndeksi:** `{gerilim:.2f}` seviyesi, sesindeki anlık eforu ve parlaklığı simgeler.
 * **Akustik Yansıma:** {ses_durum_yorumu}
 
@@ -151,14 +151,14 @@ with tab1:
 
 ### 5. Somatik ve Spiritüel Öneri Reçetesi
 * **Kristal Teması:** Enerjini dengelemek ve köklenmek için **Hematit**, **Lapis Lazuli** veya **Labradorit** taşlarıyla temas edebilirsin.
-* **Nefes ve Ses Çalışması:** Diyaframını aktif kullanarak yapacağın derin nefes egzersizleri, ses frekansındaki gerilimi 
+* **Nefes ve Ses Çalışması:** Diyaframını aktif kullanarak yapacağın derin nefes egzersizleri, ses frekansındaki gerilimi dengeleyerek boğaz çakrandaki akışı özgürleştirecektir.
 """
 
                     # Arayüze Basma
                     st.markdown(f"""
                     <div class="report-card">
                         <h3 style="color: #1b263b; margin-top: 0;">🔬 Makro Akustik Biyometrik Rapor</h3>
-                        <p><b>Ortalama Ses Frekansı ($F_0$):</b> {anlik_f0:.1f} Hz</p>
+                        <p><b>Ortalama Ses Frekansı (F0):</b> {anlik_f0:.1f} Hz</p>
                         <p><b>Gerilim / Enerji İndeksi:</b> {gerilim:.2f}</p>
                     </div>
                     
