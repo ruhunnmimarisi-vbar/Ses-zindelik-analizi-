@@ -115,10 +115,10 @@ with tab1:
                     merkur_burcu = get_zodiac_sign(mercury, observer.date)
                     venus_burcu = get_zodiac_sign(venus, observer.date)
 
-                    # --- COĞRAFİ YÜKSELEN (ASCENDANT) HESAPLAMA (DÜZELTİLDİ) ---
+                    # --- COĞRAFİ YÜKSELEN (ASCENDANT) HESAPLAMA ---
                     gmst = observer.sidereal_time()
                     lmst = float(gmst) + float(observer.lon)
-                    obliquity = 0.4090928  # Dünyanın ortalama eksen eğikliği (radyan)
+                    obliquity = 0.4090928  
                     
                     lat_rad = float(observer.lat)
                     y_val = np.cos(lmst)
@@ -127,13 +127,15 @@ with tab1:
                     asc_lon_deg = (asc_rad * 180.0 / np.pi) % 360
                     yukselen_burc = get_zodiac_sign_from_lon(asc_lon_deg)
 
-                    # --- KAD VE GAD HESAPLAMA ---
-                    moon.compute(observer.date)
-                    moon_ecl = ephem.Ecliptic(ephem.Equatorial(moon.ra, moon.dec, epoch=observer.date))
-                    moon_lon_deg = float(moon_ecl.lon) * 180.0 / np.pi
-                    ay_dugumu_lon = (moon_lon_deg + 180.0) % 360
-                    kad_burcu = get_zodiac_sign_from_lon(ay_dugumu_lon)
-                    gad_lon = (ay_dugumu_lon + 180.0) % 360
+                    # --- HASSAS KAD VE GAD HESAPLAMA (GÖK GÜNLÜĞÜ MATRİSİ) ---
+                    # Ay düğümleri ortalama 18.6 yıllık döngüye sahiptir; referans ephemeris bazlı net konum:
+                    j_date = ephem.julian_date(observer.date)
+                    T_centuries = (j_date - 2451545.0) / 36525.0
+                    # Ortalama Kuzey Ay Düğümü (True/Mean Node formülasyonu)
+                    node_lon_deg = (125.04452 - 1934.136261 * T_centuries + 0.0020708 * (T_centuries**2)) % 360
+                    
+                    kad_burcu = get_zodiac_sign_from_lon(node_lon_deg)
+                    gad_lon = (node_lon_deg + 180.0) % 360
                     gad_burcu = get_zodiac_sign_from_lon(gad_lon)
 
                     # --- KİŞİYE ÖZEL MATEMATİKSEL İNDEKSLEME ---
