@@ -5,10 +5,10 @@ import io
 import os
 import noisereduce as nr
 import ephem
-from openai import OpenAI
+import random
 
 # --- SAYFA YAPILANDIRMASI ---
-st.set_page_config(page_title="Ruhun Mimarisi | VBAR Biyometrik & Kozmik Harita", layout="centered", page_icon="🏛️")
+st.set_page_config(page_title="Ruhun Mimarisi | Bütünsel Farkındalık Sentezi", layout="centered", page_icon="🏛️")
 
 st.markdown("""
 <style>
@@ -27,12 +27,12 @@ else:
     st.markdown("<div class='title-box'><h1>🏛️ Ruhun Mimarisi | VBAR</h1></div>", unsafe_allow_html=True)
 
 # SEKME YAPISI
-tab1, tab2 = st.tabs(["🔬 Biyometrik & Kozmik Harita", "📖 Hakkında"])
+tab1, tab2 = st.tabs(["🔬 Makro Sentez & Kozmik Harita", "📖 Rehber Hakkında"])
 
 with tab2:
-    st.subheader("Ruhun Mimarisi ve Gerçek Kozmik Harita Altyapısı")
+    st.subheader("Ruhun Mimarisi ve Derin Sentez Altyapısı")
     st.write("""
-    **VBAR**, ses frekansınızdaki spektral dalgalanmaları; gerçek gök günlüğü (Ephemeris) hesaplamaları ve tropikal zodyak konumlarıyla harmanlayan profesyonel bir rehberdir.
+    **VBAR**, ses frekansınızdaki spektral dalgalanmaları ve gerilim indekslerini; gerçek gök günlüğü (Ephemeris) hesaplamalarıyla harmanlayan, her an güncellenen özgün bir farkındalık platformudur.
     """)
 
 with tab1:
@@ -61,8 +61,8 @@ with tab1:
     dogum_dakika = col_d.slider("Doğum Dakikası", 0, 59, 0)
 
     if audio_bytes:
-        if st.button("✨ Gerçek Ephemeris Kozmik Haritayı Başlat"):
-            with st.spinner("Gökyüzü konumu ve ses frekansları sentezleniyor..."):
+        if st.button("✨ Makro Ephemeris Sentezini Başlat"):
+            with st.spinner("Gökyüzü dereceleri, akustik katmanlar ve arketip havuzları harmanlanıyor..."):
                 try:
                     # Ses Analizi
                     y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
@@ -90,65 +90,75 @@ with tab1:
                     merkur_burcu = get_zodiac_sign(mercury, observer_date)
                     venus_burcu = get_zodiac_sign(venus, observer_date)
 
-                    # OpenAI Entegrasyonu ile Akıllı Sentez Yorumu
-                    ai_yorum = "Yapay zeka yorumu üretilemedi."
-                    try:
-                        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-                        prompt = f"""
-                        Sen bir ses mühendisi, astroloji uzmanı ve bilgisayar mühendisisin.
-                        Kullanıcının şu verilerini analiz ederek derin, ruhsal ve teknik bir farkındalık raporu yaz:
-                        
-                        Teknik Ses Verileri:
-                        - Temel Frekans (F0): {anlik_f0:.1f} Hz
-                        - Gerilim / Enerji İndeksi: {gerilim:.2f}
-                        
-                        Astrolojik Yerleşimler:
-                        - Güneş (Öz Kimlik): {gunes_burcu}
-                        - Ay (Duygusal Katman): {ay_burcu}
-                        - Merkür (Zihin & İletişim): {merkur_burcu}
-                        - Venüs (İlişkiler & Değerler): {venus_burcu}
-                        
-                        İstenen Çıktı:
-                        1. Göksel Potansiyel: Haritadaki burçların birbiriyle olan dinamiğini kısaca açıkla.
-                        2. Akustik Yansıma: Ses verilerinin (frekans ve enerji) haritadaki potansiyeli şu an nasıl yansıttığını yorumla.
-                        3. Somatik ve Spiritüel Reçete: Kişinin dengelenmesi için bir doğal taş ve bir odaklanma/nefes önerisi sun.
-                        
-                        Üslup: Ruhun Mimarisi'ne uygun, derinlikli, şefkatli ve bilgece. Markdown formatında başlıklar kullanarak düzenli yaz.
-                        """
-                        
-                        response = client.chat.completions.create(
-                            model="gpt-4o-mini", # veya tercih edilen uygun bir model
-                            messages=[{"role": "user", "content": prompt}],
-                            temperature=0.7
-                        )
-                        ai_yorum = response.choices[0].message.content
-                    except Exception as ai_err:
-                        ai_yorum = f"Yapay zeka servisine bağlanırken bir hata oluştu (API anahtarınızı kontrol edin): {ai_err}"
+                    # --- GENİŞLETİLMİŞ ARKETİP VE BİLGELİK HAVUZLARI ---
+                    giris_havuzu = [
+                        "Sesinin tınısındaki bu anlık dalgalanma, gökyüzünün sana sunduğu potansiyel kapıların doğrudan bir yansımasıdır.",
+                        "Zihnindeki kadim bilgelik ile sesinin taşıdığı fiziksel frekans, şu an ortak bir paydada buluşuyor.",
+                        "Bu analiz, varlığının hem göksel mimarisini hem de sesindeki anlık titreşim gerilimini derinlemesine harmanlar.",
+                        "Derinlerden gelen bu akustik akış, içsel pusulânın şu sıralar hangi odak noktasına kilitlendiğini ele veriyor."
+                    ]
+                    secilen_giris = random.choice(giris_havuzu)
 
-                    # Arketip Sözlüğü
+                    golge_havuzu = [
+                        "Aşırı odaklanma ya da kontrol etme isteği, bazen içsel akışını yavaşlatabilir; esneklik burada en büyük anahtardır.",
+                        "Beklentilerin yoğunluğu ile zihinsel trafik arasında denge kurmak, enerjini doğru yere kanalize etmeni sağlayacaktır.",
+                        "İçsel sesindeki yoğunluk, bazen dış dünyadan gelen uyaranlara karşı duyarlılığını artırabilir; kabulleniş şifadır."
+                    ]
+                    secilen_golge = random.choice(golge_havuzu)
+
+                    # Ses Durum Yorumu
+                    if gerilim > 3.5:
+                        ses_durum_yorumu = "Ses enerjindeki yüksek yoğunluk ve ivme, içsel dünyandaki dönüştürücü ateşin ve eyleme geçme arzusunun dışa vurduğunu gösteriyor."
+                    else:
+                        ses_durum_yorumu = "Ses tonundaki sakin, yumuşak ve ölçülü frekans; enerjini stratejik bir dinginlikle koruduğunu, içsel bir sükunet inşa ettiğini yansıtıyor."
+
+                    # Arketip Sözlükleri (Detaylı)
                     harita_metinleri = {
-                        "Oğlak": "<b>Oğlak Özü:</b> Yapılandırma, stratejik sabır, yüksek disiplin ve sarsılmaz sorumluluk bilinci.",
-                        "Koç": "<b>Koç Özü:</b> Öncü ateş, cesaret, dinamizm ve saf irade.",
-                        "Yay": "<b>Yay Özü:</b> Keşif, felsefi derinlik ve engin bir vizyon.",
-                        "Kova": "<b>Kova Özü:</b> Evrensel vizyon, özgürlük ve yenilikçi zihin.",
-                        "Balık": "<b>Balık Özü:</b> Şefkat, evrensel akış ve sınırsız sezgi.",
-                        "Akrep": "<b>Akrep Özü:</b> Dönüşüm, mutlak sadakat ve derin sezgisel güç.",
-                        "Boğa": "<b>Boğa Özü:</b> Toprağın dinginliği, kararlılık ve estetik değerler.",
-                        "İkizler": "<b>İkizler Özü:</b> Zihinsel çeviklik ve çok yönlü iletişim.",
-                        "Yengeç": "<b>Yengeç Özü:</b> Duygusal hafıza ve koruyuculuk.",
-                        "Aslan": "<b>Aslan Özü:</b> Yaratıcı özgüven ve kalpten gelen liderlik.",
-                        "Başak": "<b>Başak Özü:</b> Analitik zeka ve şifa odaklı düzen.",
-                        "Terazi": "<b>Terazi Özü:</b> Denge, adalet ve ilişkilerde uyum."
+                        "Oğlak": "<b>Oğlak Arketipi:</b> Yapılandırma, stratejik sabır, sarsılmaz sorumluluk bilinci ve dağın zirvesine tırmanan kararlı irade.",
+                        "Koç": "<b>Koç Arketipi:</b> Öncü ateş, mutlak cesaret, yenilikçi başlatma gücü ve saf irade.",
+                        "Yay": "<b>Yay Arketipi:</b> Keşif tutkusu, felsefi derinlik, özgürlük arayışı ve engin bir vizyon.",
+                        "Kova": "<b>Kova Arketipi:</b> Evrensel vizyon, toplumsal yenilik, entelektüel özgürlük ve futurist zihin.",
+                        "Balık": "<b>Balık Arketipi:</b> Şefkat, evrensel akış, sınırsız sezgi ve ruhsal coşku.",
+                        "Akrep": "<b>Akrep Arketipi:</b> Derin dönüşüm, mutlak sadakat, kriz anındaki dayanıklılık ve keskin sezgisel güç.",
+                        "Boğa": "<b>Boğa Arketipi:</b> Toprağın dinginliği, kararlılık, somutlaştırma gücü ve rafine estetik değerler.",
+                        "İkizler": "<b>İkizler Arketipi:</b> Zihinsel çeviklik, bilgi akışı, adaptasyon ve çok yönlü iletişim.",
+                        "Yengeç": "<b>Yengeç Arketipi:</b> Derin duygusal hafıza, koruyuculuk, yuva bilinci ve sezgisel anaçlık.",
+                        "Aslan": "<b>Aslan Arketipi:</b> Yaratıcı özgüven, sahne ışığı, kalpten gelen liderlik ve cömert neşe.",
+                        "Başak": "<b>Başak Arketipi:</b> Analitik zeka, detaylardaki mükemmellik, hizmet bilinci ve şifa odaklı düzen.",
+                        "Terazi": "<b>Terazi Arketipi:</b> İlahi denge, adalet, estetik uyum ve ilişkilerde köprü kurma yeteneği."
                     }
 
                     gunes_detay = harita_metinleri.get(gunes_burcu, "")
                     ay_detay = harita_metinleri.get(ay_burcu, "")
 
+                    # --- MAKRO DETAYLI METİN ÜRETİMİ ---
+                    ai_yorum = f"""
+### 1. Giriş ve Bütünsel Atmosfer
+{secilen_giris}
+
+### 2. Göksel Potansiyeller ve Element Sentezi
+* **Güneş Burcu ({gunes_burcu}):** Öz kimliğinin, yaşam amacının ve temel iradenin yapı taşını oluşturur. {gunes_detay}
+* **Ay Burcu ({ay_burcu}):** Duygusal reflekslerinin, iç dünyandaki huzur arayışının ve sezgisel akışının merkezidir. {ay_detay}
+* **Zihin ve İletişim ({merkur_burcu}) / Değerler ve Bağlar ({venus_burcu}):** Düşüncelerini ifade ediş biçimin ile hayatı kavrayış estetiğin bu iki gezegenin arketipleriyle şekillenir.
+
+### 3. Akustik Biyometrik ve Enerjitik Analiz
+* **Temel Frekans ($F_0$):** `{anlik_f0:.1f} Hz` değerindeki bu frekans, ses tellerinin o anki fiziksel ve enerjik salınımını temsil eder.
+* **Gerilim / Yoğunluk İndeksi:** `{gerilim:.2f}` seviyesi, sesindeki anlık eforu ve parlaklığı simgeler.
+* **Akustik Yansıma:** {ses_durum_yorumu}
+
+### 4. Gölge Alanlar ve Dönüşüm Rehberliği
+{secilen_golge} Bu potansiyeli dengelemek için farkındalığını anın içine demirlemek oldukça kıymetlidir.
+
+### 5. Somatik ve Spiritüel Öneri Reçetesi
+* **Kristal Teması:** Enerjini dengelemek ve köklenmek için **Hematit**, **Lapis Lazuli** veya **Labradorit** taşlarıyla temas edebilirsin.
+* **Nefes ve Ses Çalışması:** Diyaframını aktif kullanarak yapacağın derin nefes egzersizleri, ses frekansındaki gerilimi 
+"""
+
                     # Arayüze Basma
                     st.markdown(f"""
                     <div class="report-card">
-                        <h3 style="color: #1b263b; margin-top: 0;">🔬 Akustik Biyometrik Rapor</h3>
-                        <p><b>Temel Frekans (F0):</b> {anlik_f0:.1f} Hz</p>
+                        <h3 style="color: #1b263b; margin-top: 0;">🔬 Makro Akustik Biyometrik Rapor</h3>
+                        <p><b>Ortalama Ses Frekansı ($F_0$):</b> {anlik_f0:.1f} Hz</p>
                         <p><b>Gerilim / Enerji İndeksi:</b> {gerilim:.2f}</p>
                     </div>
                     
@@ -160,15 +170,15 @@ with tab1:
                         <p><b>Ay Konumu (Duygusal Katman):</b> {ay_burcu}</p>
                         <p>{ay_detay}</p>
                         <hr style='border: 0.5px solid #d4af37; margin: 10px 0;'>
-                        <p><b>İletişim & Zihin (Merkür):</b> {merkur_burcu} | <b>İlişkiler & Değerler (Venüs):</b> {venus_burcu}</p>
-                        <p style="font-size: 0.9em; color: #555; margin-top: 10px;"><i>Bu harita; girdiğiniz tarih ve saat verilerinin ekliptik boylam dereceleri baz alınarak tropikal zodyak sistemine göre hesaplanmıştır.</i></p>
+                        <p><b>Merkür (Zihin):</b> {merkur_burcu} | <b>Venüs (İlişkiler):</b> {venus_burcu}</p>
+                        <p style="font-size: 0.9em; color: #555; margin-top: 10px;"><i>Bu rapor; doğum verilerinin ekliptik koordinatları ile sesinin anlık frekanslarının yerel algoritmayla harmanlanmasıyla üretilmiştir.</i></p>
                     </div>
                     
                     <div class="ai-insight-box">
-                        <h3 style="color: #1b263b; margin-top: 0;">🏛️ Ruhun Mimarisi | Bütünsel Farkındalık Sentezi</h3>
+                        <h3 style="color: #1b263b; margin-top: 0;">🏛️ Ruhun Mimarisi | Makro Bütünsel Sentez</h3>
                         {ai_yorum}
                     </div>
                     """, unsafe_allow_html=True)
                     
                 except Exception as e:
-                    st.error(f"Hata: {e}")
+                    st.error(f"Hata oluştu: {e}")
