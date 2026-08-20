@@ -83,14 +83,14 @@ with tab1:
                     venus_burcu = get_zodiac_sign(venus, observer_date)
 
                     # --- YÜKSELEN (ASCENDANT) HESAPLAMA ---
-                    # Türkiye ortalama boylamı (~27-35° E) baz alınarak yaklaşık Sidereal/House hesaplama yaklaşımı
                     sidereal_time = (observer_date - int(observer_date)) * 360.0 + (dogum_saat * 15.0) + 28.0
                     asc_lon = (sidereal_time + (dogum_dakika * 0.25)) % 360
                     yukselen_burc = get_zodiac_sign_from_lon(asc_lon)
 
-                    # --- KAD VE GAD HESAPLAMA (Kuzey ve Güney Ay Düğümü) ---
-                    # Ay düğümleri zodyakta zıt burçlardadır; yaklaşık bir döngü hesaplaması
-                    ay_dugumu_lon = (float(moon.ecliptic_lon) * 180.0 / np.pi + 180.0) % 360
+                    # --- KAD VE GAD HESAPLAMA (Güvenli Dönüşüm) ---
+                    moon_ecl = ephem.Ecliptic(ephem.Equatorial(moon.ra, moon.dec, epoch=observer_date))
+                    moon_lon_deg = float(moon_ecl.lon) * 180.0 / np.pi
+                    ay_dugumu_lon = (moon_lon_deg + 180.0) % 360
                     kad_burcu = get_zodiac_sign_from_lon(ay_dugumu_lon)
                     gad_lon = (ay_dugumu_lon + 180.0) % 360
                     gad_burcu = get_zodiac_sign_from_lon(gad_lon)
