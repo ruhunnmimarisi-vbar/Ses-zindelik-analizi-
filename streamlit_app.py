@@ -53,11 +53,11 @@ with tab1:
     
     col_g, col_a, col_y = st.columns(3)
     with col_g:
-        dogum_gun = st.selectbox("Gün", list(range(1, 32)), index=28) # 29
+        dogum_gun = st.selectbox("Gün", list(range(1, 32)), index=28) 
     with col_a:
-        dogum_ay = st.selectbox("Ay", list(range(1, 13)), index=11) # Aralık
+        dogum_ay = st.selectbox("Ay", list(range(1, 13)), index=11) 
     with col_y:
-        dogum_yil = st.selectbox("Yıl", list(range(1940, 2026)), index=44) # 1984
+        dogum_yil = st.selectbox("Yıl", list(range(1940, 2026)), index=44) 
 
     col_s, col_d = st.columns(2)
     with col_s:
@@ -81,8 +81,7 @@ with tab1:
                     rms_val = np.mean(librosa.feature.rms(y=y_denoised))
                     gerilim = float((rms_val * 50) + (np.mean(librosa.feature.spectral_centroid(y=y_denoised, sr=sr)) / 400))
 
-                    # 2. Gerçek Ephemeris Hesaplaması (UTC formatına uyarlanmış zaman damgası)
-                    # PyEphem kullanarak Güneş ve Ay'ın tam derecelerini ve takımyıldız karşılıklarını buluyoruz
+                    # 2. Gerçek Ephemeris Hesaplaması
                     tarih_str = f"{dogum_yil}/{dogum_ay}/{dogum_gun} {dogum_saat}:{dogum_dakika}:00"
                     observer_date = ephem.Date(tarih_str)
                     
@@ -90,15 +89,13 @@ with tab1:
                     moon = ephem.Moon(observer_date)
                     mercury = ephem.Mercury(observer_date)
                     venus = ephem.Venus(observer_date)
-                    mars = ephem.Mars(observer_date)
                     
-                    # Ephem takımyıldız kodlarını Türkçe Zodyak isimlerine çeviren akıllı sözlük
                     const_to_zodyak = {
                         "Capricornus": "Oğlak", "Sagittarius": "Yay", "Scorpius": "Akrep",
                         "Aquarius": "Kova", "Pisces": "Balık", "Aries": "Koç",
                         "Taurus": "Boğa", "Gemini": "İkizler", "Cancer": "Yengeç",
                         "Leo": "Aslan", "Virgo": "Başak", "Libra": "Terazi",
-                        "Ophiuchus": "Oğlak" # Astronomik sınır adaptasyonu için güvenli yönlendirme
+                        "Ophiuchus": "Oğlak"
                     }
                     
                     raw_sun_const = ephem.constellation(sun)[1]
@@ -106,7 +103,6 @@ with tab1:
                     raw_merc_const = ephem.constellation(mercury)[1]
                     raw_venus_const = ephem.constellation(venus)[1]
                     
-                    # Kesin eşleştirme (Eğer takımyıldız sözlükte yoksa tarihe göre doğrudan fallback / Oğlak garantisi)
                     gunes_burcu = const_to_zodyak.get(raw_sun_const, "Oğlak" if dogum_ay == 12 else "Yay")
                     if dogum_ay == 12 and dogum_gun >= 22:
                         gunes_burcu = "Oğlak"
@@ -115,20 +111,19 @@ with tab1:
                     merkur_burcu = const_to_zodyak.get(raw_merc_const, "Kova")
                     venus_burcu = const_to_zodyak.get(raw_venus_const, "Koç")
 
-                    # 3. Arketip ve Öz Açıklamaları
                     harita_metinleri = {
-                        "Oğlak": "<b>Oğlak (Capricorn) Özü:</b> Yapılandırma, stratejik sabır, yüksek disiplin ve sarsılmaz sorumluluk bilinci. İçsel otoriteniz, dış dünyada kalıcı eserler bırakma iradenizi besler.",
-                        "Yay": "<b>Yay (Sagittarius) Özü:</b> Keşif, felsefi derinlik ve engin bir vizyon. Hayatı geniş bir mercekten okuma ve hakikat arayışı ruhunuzun temelini oluşturur.",
-                        "Akrep": "<b>Akrep (Scorpio) Özü:</b> Dönüşüm, mutlak sadakat ve derin sezgisel güç. Görünmeyeni sezme ve krizleri avantaja çevirme potansiyeli yüksektir.",
-                        "Kova": "<b>Kova (Aquarius) Özü:</b> Evrensel vizyon, özgürlük ve yenilikçi zihin. Toplumsal kalıpların ötesinde düşünen öncü bir frekansa sahipsiniz.",
-                        "Balık": "<b>Balık (Pisces) Özü:</b> Şefkat, evrensel akış ve sınırsız sezgi. Ruhsal boyutla kurduğunuz bağ oldukça derindir.",
-                        "Koç": "<b>Koç (Aries) Özü:</b> Öncü ateş, cesaret ve saf irade. Hayatı başlatma ve engelleri aşma gücü verir.",
-                        "Boğa": "<b>Boğa (Taurus) Özü:</b> Toprağın dinginliği, kararlılık ve estetik değerler. Maddi ve manevi köklenme beceriniz yüksektir.",
-                        "İkizler": "<b>İkizler (Gemini) Özü:</b> Zihinsel çeviklik, çok yönlü iletişim ve bilgi akışı.",
-                        "Yengeç": "<b>Yengeç (Cancer) Özü:</b> Duygusal hafıza, koruyuculuk ve köklerine bağlılık.",
-                        "Aslan": "<b>Aslan (Leo) Özü:</b> Yaratıcı özgüven, sahne enerjisi ve kalpten gelen liderlik.",
-                        "Başak": "<b>Başak (Virgo) Özü:</b> Analitik zeka, şifa odaklı düzen ve kusursuzlandırma iradesi.",
-                        "Terazi": "<b>Terazi (Libra) Özü:</b> Denge, adalet, estetik ve ilişkilerde uyum arayışı."
+                        "Oğlak": "<b>Oğlak (Capricorn) Özü:</b> Yapılandırma, stratejik sabır, yüksek disiplin ve sarsılmaz sorumluluk bilinci.",
+                        "Yay": "<b>Yay (Sagittarius) Özü:</b> Keşif, felsefi derinlik ve engin bir vizyon.",
+                        "Akrep": "<b>Akrep (Scorpio) Özü:</b> Dönüşüm, mutlak sadakat ve derin sezgisel güç.",
+                        "Kova": "<b>Kova (Aquarius) Özü:</b> Evrensel vizyon, özgürlük ve yenilikçi zihin.",
+                        "Balık": "<b>Balık (Pisces) Özü:</b> Şefkat, evrensel akış ve sınırsız sezgi.",
+                        "Koç": "<b>Koç (Aries) Özü:</b> Öncü ateş, cesaret ve saf irade.",
+                        "Boğa": "<b>Boğa (Taurus) Özü:</b> Toprağın dinginliği, kararlılık ve estetik değerler.",
+                        "İkizler": "<b>İkizler (Gemini) Özü:</b> Zihinsel çeviklik ve çok yönlü iletişim.",
+                        "Yengeç": "<b>Yengeç (Cancer) Özü:</b> Duygusal hafıza ve koruyuculuk.",
+                        "Aslan": "<b>Aslan (Leo) Özü:</b> Yaratıcı özgüven ve kalpten gelen liderlik.",
+                        "Başak": "<b>Başak (Virgo) Özü:</b> Analitik zeka ve şifa odaklı düzen.",
+                        "Terazi": "<b>Terazi (Libra) Özü:</b> Denge, adalet ve ilişkilerde uyum."
                     }
 
                     gunes_detay = harita_metinleri.get(gunes_burcu, "Güneş enerjisi aktif.")
@@ -150,7 +145,7 @@ with tab1:
                         <p>{ay_detay}</p>
                         <hr style='border: 0.5px solid #d4af37; margin: 10px 0;'>
                         <p><b>İletişim & Zihin (Merkür):</b> {merkur_burcu} | <b>İlişkiler & Değerler (Venüs):</b> {venus_burcu}</p>
-                        <p style="font-size: 0.9em; color: #555; margin-top: 10px;"><i>Bu harita; girdiğiniz tarih, saat ve ses frekansınız ortaklaştırrılarak gerçek gök günlüğü motoruyla hesaplanmıştır.</i></p>
+                        <p style="font-size: 0.9em; color: #555; margin-top: 10px;"><i>Bu harita; girdiğiniz tarih, saat ve ses frekansınız ortaklaştırılarak gerçek gök günlüğü motoruyla hesaplanmıştır.</i></p>
                     </div>
                     """, unsafe_allow_html=True)
 
