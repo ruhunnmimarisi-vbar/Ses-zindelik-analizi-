@@ -208,7 +208,6 @@ with tab1:
                         ("Balık", "Başak"): "Aşırı eleştirel, detaylarda boğulan ve her şeyi kontrol etme çabasında olan zihni (Başak) dinlendirip; ilahi akışa güvenmeyi ve evrensel şefkati (Balık) seçmektir."
                     }
 
-                    # Varsayılan genel açıklama (eşleşme olmazsa diye)
                     kader_aksı_yorumu = kad_gad_detaylari.get((kad_burcu, gad_burcu), f"Güney Ay Düğümü'nün ({gad_burcu}) taşıdığı geçmiş alışkanlıklardan arınarak, Kuzey Ay Düğümü'nün ({kad_burcu}) işaret ettiği yeni ruhsal deneyimlere ve gelişim alanına doğru cesurca ilerlemen gereken dönüm noktasındasın.")
 
                     gunes_detay = harita_metinleri.get(gunes_burcu, "")
