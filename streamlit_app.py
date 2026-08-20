@@ -21,7 +21,7 @@ tab1, tab2 = st.tabs(["🔬 Makro Sentez & Kozmik Harita", "📖 Rehber Hakkınd
 with tab2:
     st.subheader("Ruhun Mimarisi ve Derin Sentez Altyapısı")
     st.write("""
-    **VBAR**, ses frekansınızdaki spektral dalgalanmaları ve gerilim indekslerini; gerçek gök günlüğü (Ephemeris) hesaplamalarıyla harmanlayan, her an güncellenen özgün bir farkındalık platformudur.
+    **VBAR**, ses frekansınızdaki spektral dalgalanmaları ve gerilim indekslerini; gerçek gök günlüğü (Ephemeris), Yükselen Burç ve Ay Düğümü (KAD/GAD) hesaplamalarıyla harmanlayan özgün bir farkındalık platformudur.
     """)
 
 with tab1:
@@ -51,7 +51,7 @@ with tab1:
 
     if audio_bytes:
         if st.button("✨ Makro Ephemeris Sentezini Başlat"):
-            with st.spinner("Gökyüzü dereceleri, akustik katmanlar ve ses frekansın harmanlanıyor..."):
+            with st.spinner("Yükselen burç, Ay düğümleri (KAD/GAD), akustik katmanlar ve ses frekansın harmanlanıyor..."):
                 try:
                     # Ses Analizi
                     y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
@@ -60,13 +60,16 @@ with tab1:
                     anlik_f0 = float(np.nanmean(pitches[pitches > 0])) if np.any(pitches > 0) else 210.0
                     gerilim = float((np.mean(librosa.feature.rms(y=y_denoised)) * 50) + (np.mean(librosa.feature.spectral_centroid(y=y_denoised, sr=sr)) / 400))
 
-                    # Astronomik Hesaplama
+                    # Astronomik Hesaplama Yardımcısı
+                    def get_zodiac_sign_from_lon(lon_deg):
+                        burclar = ["Koç", "Boğa", "İkizler", "Yengeç", "Aslan", "Başak", "Terazi", "Akrep", "Yay", "Oğlak", "Kova", "Balık"]
+                        return burclar[int((lon_deg % 360) // 30)]
+
                     def get_zodiac_sign(body_obj, obs_date):
                         ecl = ephem.Equatorial(body_obj.ra, body_obj.dec, epoch=obs_date)
                         ecl = ephem.Ecliptic(ecl)
                         lon_deg = float(ecl.lon) * 180.0 / np.pi
-                        burclar = ["Koç", "Boğa", "İkizler", "Yengeç", "Aslan", "Başak", "Terazi", "Akrep", "Yay", "Oğlak", "Kova", "Balık"]
-                        return burclar[int((lon_deg % 360) // 30)]
+                        return get_zodiac_sign_from_lon(lon_deg)
 
                     tarih_str = f"{dogum_yil}/{dogum_ay}/{dogum_gun} {dogum_saat}:{dogum_dakika}:00"
                     observer_date = ephem.Date(tarih_str)
@@ -79,32 +82,44 @@ with tab1:
                     merkur_burcu = get_zodiac_sign(mercury, observer_date)
                     venus_burcu = get_zodiac_sign(venus, observer_date)
 
-                    # --- TAMAMEN KİŞİYE ÖZEL MATEMATİKSEL İNDEKSLEME ---
-                    # Sesin küsuratları ve doğum verileri birleştirilerek benzersiz bir anahtar üretilir
+                    # --- YÜKSELEN (ASCENDANT) HESAPLAMA ---
+                    # Türkiye ortalama boylamı (~27-35° E) baz alınarak yaklaşık Sidereal/House hesaplama yaklaşımı
+                    sidereal_time = (observer_date - int(observer_date)) * 360.0 + (dogum_saat * 15.0) + 28.0
+                    asc_lon = (sidereal_time + (dogum_dakika * 0.25)) % 360
+                    yukselen_burc = get_zodiac_sign_from_lon(asc_lon)
+
+                    # --- KAD VE GAD HESAPLAMA (Kuzey ve Güney Ay Düğümü) ---
+                    # Ay düğümleri zodyakta zıt burçlardadır; yaklaşık bir döngü hesaplaması
+                    ay_dugumu_lon = (float(moon.ecliptic_lon) * 180.0 / np.pi + 180.0) % 360
+                    kad_burcu = get_zodiac_sign_from_lon(ay_dugumu_lon)
+                    gad_lon = (ay_dugumu_lon + 180.0) % 360
+                    gad_burcu = get_zodiac_sign_from_lon(gad_lon)
+
+                    # --- KİŞİYE ÖZEL MATEMATİKSEL İNDEKSLEME ---
                     unique_seed = int((anlik_f0 * 100 + gerilim * 1000 + dogum_gun * 13 + dogum_saat * 7) % 5)
 
                     giris_listesi = [
-                        f"Sesinin {anlik_f0:.1f} Hz seviyesindeki titreşimi, {gunes_burcu} burcunun sana bahşettiği temel irade ile anlık bir köprü kuruyor.",
-                        f"Bu kayıt, {gunes_burcu} enerjisinin dış dünyaya yansıyan sesli imzasını ve {anlik_f0:.1f} Hz'lik tınısındaki özgün akışı gözler önüne seriyor.",
-                        f"Ses tellerinden yayılan bu dalga boyu, gökyüzündeki {gunes_burcu} ve {ay_burcu} yerleşimlerinin sesli bir yansıma biçimidir.",
-                        f"Akustik Spektrum analizi, {anlik_f0:.1f} Hz frekansı üzerinden içsel dünyandaki potansiyel kapıların aralandığını işaret ediyor.",
-                        f"Zihnindeki düşünce akışı ile sesindeki {anlik_f0:.1f} Hz tını, bu sentezde kendine has bambaşka bir ritim yaratıyor."
+                        f"Sesinin {anlik_f0:.1f} Hz seviyesindeki titreşimi, Yükselen {yukselen_burc} maskesinin dış dünyaya açtığı ilk kapıyla kusursuz bir uyum sergiliyor.",
+                        f"Bu akustik kayıt, {yukselen_burc} yükseleninin getirdiği duruş ile ses tellerindeki {anlik_f0:.1f} Hz'lik tınısındaki özgün enerjiyi harmanlıyor.",
+                        f"Konuşurken sergilediğin ses dalgası, gökyüzündeki {gunes_burcu} güneş kimliğin ile {yukselen_burc} yükseleninin dışa yansıyan ortak imzasıdır.",
+                        f"Akustik Spektrum analizi, {anlik_f0:.1f} Hz frekansı üzerinden içsel potansiyellerinin ve yükselen burç karakterinin zihnindeki izdüşümünü yakalıyor.",
+                        f"Zihnindeki düşünce akışı ile sesindeki {anlik_f0:.1f} Hz tını, {yukselen_burc} yükseleninin çevrenle kurduğu köprüyü yeniden şekillendiriyor."
                     ]
 
                     analiz_listesi = [
-                        f"Ölçülen {gerilim:.2f} gerilim katsayısı, enerjini dönüştürme konusunda aktif bir çaba içinde olduğunu ve ses tonunun bu eforu, {gunes_burcu} arketipiyle harmanladığını gösteriyor.",
-                        f"Sesindeki {gerilim:.2f} yoğunluk indeksi, dış dünyadan gelen uyaranlara karşı duyarlılığını ve bu süreçte {ay_burcu} katmanından beslenen duygusal reflekslerini ele veriyor.",
-                        f"Kaydın akustik yapısında gözlenen {gerilim:.2f} gerilim değeri, içsel dünyandaki dengeyi koruma çabanı ve ses tellerindeki dinamik salınımı net bir şekilde yansıtıyor.",
-                        f"Frekans analizindeki {gerilim:.2f} puanlıkimans, zihinsel odaklanma ile anlık rahatlama isteği arasında kurduğun köprünün karakterini gözler önüne seriyor.",
-                        f"Sesinin {gerilim:.2f} enerji seviyesi, kararlı duruşunu korurken bir yandan da ruhsal olarak esneme alanları aradığını simgeliyor."
+                        f"Ölçülen {gerilim:.2f} gerilim katsayısı, enerjini dönüştürme çabanı; GAD ({gad_burcu}) köklerinden gelen alışkanlıkları bırakıp KAD ({kad_burcu}) yönüne doğru gelişme isteğini ele veriyor.",
+                        f"Sesindeki {gerilim:.2f} yoğunluk indeksi, dış dünyadan gelen uyaranlara karşı duyarlılığını ve bu süreçte {ay_burcu} katmanındaki duygusal reflekslerini simgeliyor.",
+                        f"Kaydın akustik yapısında gözlenen {gerilim:.2f} gerilim değeri, {yukselen_burc} burcunun dış dünyaya gösterdiği yüz ile içsel dünyandaki denge arayışını yansıtıyor.",
+                        f"Frekans analizindeki {gerilim:.2f} puanlık ivme, geçmiş karmik kalıplardan (GAD: {gad_burcu}) sıyrılıp ruhsal hedefine (KAD: {kad_burcu}) odaklanma çabanı gösteriyor.",
+                        f"Sesinin {gerilim:.2f} enerji seviyesi, kararlı duruşunu korurken bir yandan da ruhsal olarak esneme alanları aradığını net bir biçimde gözler önüne seriyor."
                     ]
 
                     golge_listesi = [
-                        f"Yoğun temponun getirdiği zihinsel yorgunluğu hafifletmek için {gunes_burcu.lower()} burcunun sabır enerjisine güvenebilirsin.",
-                        f"Beklentilerin ve sorumlulukların yarattığı baskıyı esnetmek, içsel akışını yeniden canlandıracaktır.",
-                        f"Anın kontrolünü biraz olsun serbest bırakmak, {ay_burcu.lower()} katmanındaki duygusal dalgalanmaları dindirecektir.",
-                        f"Zihinsel trafiği yavaşlatmak adına dış dünyadaki uyaranlara kısa bir mola vermek şu sıralar en büyük şifadır.",
-                        f"Mükemmeliyetçi yaklaşımları bir kenara bırakıp kendi doğal ritmine uyumlanmak dönüşümün anahtarıdır."
+                        f"Geçmişin güvenli ama artık tüketici alışkanlıklarından ({gad_burcu}) sıyrılıp, {kad_burcu} yönündeki yeniliklere adım atmak şu sıralar zihinsel trafiğini rahatlatacaktır.",
+                        f"Beklentilerin ve sorumlulukların yarattığı baskıyı esnetmek, {yukselen_burc} yükseleninin getirdiği yorgunluğu hafifletecektir.",
+                        f"Anın kontrolünü biraz olsun serbest bırakmak, {ay_burcu} katmanındaki duygusal dalgalanmaları dindirecek ve ruhsal eksenini güçlendirecektir.",
+                        f"Zihinsel trafiği yavaşlatmak adına dış dünyadaki uyaranlara kısa bir mola vermek ve GAD ({gad_burcu}) tuzaklarından kaçınmak en büyük şifadır.",
+                        f"Mükemmeliyetçi yaklaşımları bir kenara bırakıp kendi doğal ritmine uyumlanmak, KAD ({kad_burcu}) yolculuğunun anahtarıdır."
                     ]
 
                     kristal_listesi = [
@@ -115,7 +130,6 @@ with tab1:
                         ("- **Kristal Desteği:** Ruhsal akışı desteklemek için **Ametist** veya **Yıldız Taşı** tercih edebilirsin.", "- **Somatik Pratik:** Gözlerini kapatıp sadece nefesine odaklandığın 3 dakikalık bir merkezlenme pratiği yapabilirsin.")
                     ]
 
-                    # Benzersiz index seçimi
                     secilen_giris = giris_listesi[unique_seed % len(giris_listesi)]
                     secilen_analiz = analiz_listesi[(unique_seed + 1) % len(analiz_listesi)]
                     secilen_golge = golge_listesi[(unique_seed + 2) % len(golge_listesi)]
@@ -138,6 +152,7 @@ with tab1:
 
                     gunes_detay = harita_metinleri.get(gunes_burcu, "")
                     ay_detay = harita_metinleri.get(ay_burcu, "")
+                    yukselen_detay = harita_metinleri.get(yukselen_burc, "")
 
                     # --- ARAYÜZ SUNUMU ---
                     with st.container(border=True):
@@ -146,10 +161,14 @@ with tab1:
                         st.metric("Gerilim / Enerji İndeksi", f"{gerilim:.2f}")
 
                     with st.container(border=True):
-                        st.subheader("🌌 Gerçek Ephemeris Kozmik Harita")
+                        st.subheader("🌌 Gerçek Ephemeris Kozmik Harita & Kader Aksı")
+                        st.markdown(f"**Yükselen Burç (Maske & Duruş):** {yukselen_burc} — *{yukselen_detay}*")
+                        st.divider()
                         st.markdown(f"**Güneş Konumu (Öz Kimlik):** {gunes_burcu} — *{gunes_detay}*")
                         st.divider()
                         st.markdown(f"**Ay Konumu (Duygusal Katman):** {ay_burcu} — *{ay_detay}*")
+                        st.divider()
+                        st.markdown(f"**Kuzey Ay Düğümü (KAD - Ruhsal Hedefin):** **{kad_burcu}**  |  **Güney Ay Düğümü (GAD - Geçmiş Yükün):** **{gad_burcu}**")
                         st.divider()
                         st.markdown(f"**Merkür (Zihin):** {merkur_burcu}  |  **Venüs (İlişkiler):** {venus_burcu}")
 
@@ -160,7 +179,7 @@ with tab1:
                         st.write(secilen_giris)
 
                         st.markdown("### 2. Göksel Potansiyeller ve Element Sentezi")
-                        st.write(f"Karakterinin özünü oluşturan {gunes_burcu} ile iç dünyanı besleyen {ay_burcu} katmanının etkileşimi, şu sıralar hayata bakış açını doğrudan şekillendiriyor.")
+                        st.write(f"Dış dünyaya gösterdiğin yüzü belirleyen **Yükselen {yukselen_burc}** ile öz kimliğin olan **{gunes_burcu}** ve ruhsal gelişim aksın olan **GAD {gad_burcu} -> KAD {kad_burcu}** hattı, bu dönemsel dönüşümünün ana hatlarını çiziyor.")
 
                         st.markdown("### 3. Akustik Biyometrik Analiz")
                         st.write(secilen_analiz)
