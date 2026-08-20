@@ -44,7 +44,6 @@ with tab1:
     # --- 81 İL VE TÜM İLÇELERİ KAPSAYAN GENİŞLETİLMİŞ VERİTABANI ---
     st.markdown("### 🌍 Doğum Yeri (İl ve İlçe) Seçimi")
     
-    # Türkiye'nin 81 ili ve tüm ilçelerini içeren eksiksiz sözlük yapısı
     il_ilce_veritabani = {
         "Adana": {"Aladağ": (37.5458, 35.3781), "Ceyhan": (37.0253, 35.8178), "Çukurova": (37.0500, 35.3167), "Feke": (37.8183, 35.9083), "İmamoğlu": (37.2583, 35.6917), "Karaisalı": (37.2567, 35.0658), "Karataş": (36.5708, 35.3714), "Kozan": (37.4536, 35.8139), "Pozantı": (37.4392, 34.8692), "Saimbeyli": (37.9944, 36.0889), "Sarıçam": (37.0500, 35.4167), "Seyhan": (37.0000, 35.3213), "Tufanbeyli": (38.2619, 36.2158), "Yumurtalık": (36.7694, 35.7856), "Yüreğir": (37.0000, 35.3500)},
         "Adıyaman": {"Besni": (37.6914, 37.8578), "Celikhan": (38.0250, 38.2333), "Gerger": (38.1639, 39.0833), "Gölbaşı": (37.7814, 37.6369), "Kahta": (37.7814, 38.6231), "Merkez": (37.7648, 38.2786), "Samsat": (37.5975, 38.4947), "Sincik": (38.0833, 38.6333), "Tut": (37.7194, 37.9514)},
@@ -57,17 +56,14 @@ with tab1:
         "Tekirdağ": {"Çerkezköy": (41.2867, 27.9978), "Çorlu": (41.1667, 27.8000), "Ergene": (41.2167, 27.7667), "Hayrabolu": (41.2208, 27.1528), "Kapaklı": (41.3411, 27.9658), "Malkara": (40.8958, 26.9036), "Muratlı": (41.1806, 27.5097), "Saray": (41.4389, 27.9228), "Süleymanpaşa": (40.9833, 27.5167), "Şarköy": (40.6167, 27.1167)}
     }
 
-    # İller listesi
     tum_iller = sorted(list(il_ilce_veritabani.keys()))
 
     col_il, col_ilce = st.columns(2)
     secilen_il = col_il.selectbox("İl Seçin", tum_iller, index=tum_iller.index("Tekirdağ") if "Tekirdağ" in tum_iller else 0)
 
-    # Seçilen ile ait ilçeleri dinamik olarak listeleme
     mevcut_ilceler = sorted(list(il_ilce_veritabani[secilen_il].keys()))
     secilen_ilce = col_ilce.selectbox("İlçe Seçin", mevcut_ilceler)
 
-    # Tam koordinat ataması
     lat_val, lon_val = il_ilce_veritabani[secilen_il][secilen_ilce]
     tam_konum_adi = f"{secilen_il} / {secilen_ilce}"
 
@@ -91,18 +87,16 @@ with tab1:
                     anlik_f0 = float(np.nanmean(pitches[pitches > 0])) if np.any(pitches > 0) else 210.0
                     gerilim = float((np.mean(librosa.feature.rms(y=y_denoised)) * 50) + (np.mean(librosa.feature.spectral_centroid(y=y_denoised, sr=sr)) / 400))
 
-                    # Gözlemci Tanımlama (Seçilen İlçe Koordinatları)
+                    # Gözlemci Tanımlama
                     observer = ephem.Observer()
                     observer.lat = str(lat_val)
                     observer.lon = str(lon_val)
                     observer.elevation = 150
 
-                    # UTC Zaman Ayarı (Türkiye GMT+3)
                     utc_saat = (dogum_saat - 3) % 24
                     tarih_str = f"{dogum_yil}/{dogum_ay}/{dogum_gun} {utc_saat}:{dogum_dakika}:00"
                     observer.date = ephem.Date(tarih_str)
 
-                    # Astronomik Hesaplama Yardımcıları
                     def get_zodiac_sign_from_lon(lon_deg):
                         burclar = ["Koç", "Boğa", "İkizler", "Yengeç", "Aslan", "Başak", "Terazi", "Akrep", "Yay", "Oğlak", "Kova", "Balık"]
                         return burclar[int((lon_deg % 360) // 30)]
@@ -121,10 +115,10 @@ with tab1:
                     merkur_burcu = get_zodiac_sign(mercury, observer.date)
                     venus_burcu = get_zodiac_sign(venus, observer.date)
 
-                    # --- COĞRAFİ YÜKSELEN (ASCENDANT) HESAPLAMA ---
+                    # --- COĞRAFİ YÜKSELEN (ASCENDANT) HESAPLAMA (DÜZELTİLDİ) ---
                     gmst = observer.sidereal_time()
                     lmst = float(gmst) + float(observer.lon)
-                    obliquity = ephem.obliquity()
+                    obliquity = 0.4090928  # Dünyanın ortalama eksen eğikliği (radyan)
                     
                     lat_rad = float(observer.lat)
                     y_val = np.cos(lmst)
