@@ -5,4 +5,8 @@ soundfile
 google-generativeai>=0.8.0
 noisereduce
 pyephem
+ephem
+openai
+scipy
+
 
