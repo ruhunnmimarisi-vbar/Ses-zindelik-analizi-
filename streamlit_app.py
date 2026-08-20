@@ -118,7 +118,9 @@ with tab1:
                     # --- COĞRAFİ YÜKSELEN (ASCENDANT) HESAPLAMA ---
                     gmst = observer.sidereal_time()
                     lmst = float(gmst) + float(observer.lon)
-                    eps = ephem.obliquity() 
+                    
+                    # Dünya'nın ortalama eksen eğikliği (yaklaşık 23.4369 derece)
+                    eps = 23.4369 * np.pi / 180.0 
                     lat_rad = float(observer.lat)
 
                     y_val = np.cos(lmst)
