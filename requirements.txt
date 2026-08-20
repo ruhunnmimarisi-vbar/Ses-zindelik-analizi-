@@ -8,5 +8,6 @@ pyephem
 ephem
 openai
 scipy
+pyswisseph
 
 
