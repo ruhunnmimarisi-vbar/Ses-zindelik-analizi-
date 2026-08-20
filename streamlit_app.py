@@ -5,7 +5,6 @@ import io
 import os
 import noisereduce as nr
 import ephem
-import random
 
 # --- SAYFA YAPILANDIRMASI ---
 st.set_page_config(page_title="Ruhun Mimarisi | Bütünsel Farkındalık Sentezi", layout="centered", page_icon="🏛️")
@@ -52,7 +51,7 @@ with tab1:
 
     if audio_bytes:
         if st.button("✨ Makro Ephemeris Sentezini Başlat"):
-            with st.spinner("Gökyüzü dereceleri, akustik katmanlar ve arketip havuzları harmanlanıyor..."):
+            with st.spinner("Gökyüzü dereceleri, akustik katmanlar ve ses frekansın harmanlanıyor..."):
                 try:
                     # Ses Analizi
                     y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
@@ -80,47 +79,36 @@ with tab1:
                     merkur_burcu = get_zodiac_sign(mercury, observer_date)
                     venus_burcu = get_zodiac_sign(venus, observer_date)
 
-                    # Tamamen Ayrıştırılmış Özgün Havuzlar
-                    giris_havuzu = [
-                        "Ses tellerinden yayılan bu ilk dalga, bilinç altındaki potansiyel enerjinin dış dünyayla kurduğu ilk temestir.",
-                        "Kozmik haritanın mimarisi ile sesinin anlık frekans tınısı, bu sentezde benzersiz bir ritim oluşturuyor.",
-                        "Konuşurken sergilediğin akustik akış, içsel dünyandaki arketipsel dengenin dışa vurulan sesli haritasıdır."
-                    ]
-                    secilen_giris = random.choice(giris_havuzu)
+                    # --- SES DEĞERLERİNE GÖRE DİNAMİK METİN ÜRETİMİ ---
+                    if anlik_f0 > 230:
+                        f0_yorum = f"Sesinin tınısındaki yüksek frekans ({anlik_f0:.1f} Hz), zihinsel hareketliliğin, üretkenlik coşkunun ve anlık heyecanların ses tellerine doğrudan yansıdığını gösteriyor."
+                    else:
+                        f0_yorum = f"Sesinin {anlik_f0:.1f} Hz seviyesindeki daha tok ve bas tınısı, içine dönük, derin düşünen ve enerjisini merkeze alan sakin bir duruşu temsil ediyor."
 
-                    golge_havuzu = [
-                        "Zihinsel planlar ile duygusal beklentiler arasında sıkışma hissedildiğinde, bedeni topraklamak en güvenli limandır.",
-                        "Mükemmeliyetçi ya da aşırı denetleyici tutumlar anın akışını kısıtlayabilir; bırak gitsin.",
-                        "Dış dünyadan gelen uyaranların sesine yansıyan yorgunluğu, ancak öz şefkat ve yavaşlama adımlarıyla şifalandırabilirsin."
-                    ]
-                    secilen_golge = random.choice(golge_havuzu)
-
-                    reçete_havuzu = [
-                        "- **Kristal ve Doğal Taş Desteği:** Enerji alanını dengelemek için **Hematit** veya **Labradorit** bilekliği kullanabilirsin.\n- **Somatik Pratik:** Omuzları serbest bırakıp derin karın nefesleriyle boğaz çakrasındaki blokajı esnetebilirsin.",
-                        "- **Kristal ve Doğal Taş Desteği:** Duygusal akışını şifalandırmak adına **Lapis Lazuli** veya **Akuamarin** taşıyla odaklanabilirsin.\n- **Somatik Pratik:** Ayak tabanlarını yere tam basarak kısa bir yürüyüşle fiziksel köklenmeni güçlendirebilirsin.",
-                        "- **Kristal ve Doğal Taş Desteği:** Zihinsel berraklık için **Onyx** veya **Dağ Kristali** enerjisinden faydalanabilirsin.\n- **Somatik Pratik:** Ses tellerini dinlendiren ılık bitki çayları eşliğinde sessizlik molaları verebilirsin."
-                    ]
-                    secilen_recete = random.choice(reçete_havuzu)
-
-                    ses_durum_yorumu = "Ses enerjisindeki yoğun ivme, harekete geçme arzusunun ve dönüştürücü motivasyonun yüksek olduğunu gösteriyor." if gerilim > 3.5 else "Ses tonundaki sükunet ve dengeli frekans, stratejik bir içsel dinginlik inşa ettiğini simgeliyor."
+                    if gerilim > 4.5:
+                        gerilim_yorum = f"Ölçülen {gerilim:.2f} gerilim indeksi, omuzlarında taşıdığın yoğun sorumlulukları veya bir konuyu çözme konusundaki kararlı ama yorucu çabanı ele veriyor."
+                    elif gerilim > 3.0:
+                        gerilim_yorum = f"Ölçülen {gerilim:.2f} gerilim indeksi, dış dünya ile iç dünyan arasında kurmaya çalıştığın dengeli ve temkinli çabayı yansıtıyor."
+                    else:
+                        gerilim_yorum = f"Ölçülen {gerilim:.2f} gerilim indeksi, sesinde son derece akışkan, rahat ve dirençsiz bir sükunet hâkim olduğunu gösteriyor."
 
                     harita_metinleri = {
-                        "Oğlak": "Yapılandırma, stratejik sabır, sarsılmaz sorumluluk bilinci.",
-                        "Koç": "Öncü ateş, mutlak cesaret, yenilikçi başlatma gücü.",
-                        "Yay": "Keşif tutkusu, felsefi derinlik, özgürlük arayışı.",
-                        "Kova": "Evrensel vizyon, toplumsal yenilik, entelektüel özgürlük.",
-                        "Balık": "Şefkat, evrensel akış, sınırsız sezgi.",
-                        "Akrep": "Derin dönüşüm, mutlak sadakat, kriz anı dayanıklılığı.",
-                        "Boğa": "Toprağın dinginliği, kararlılık, somutlaştırma gücü.",
-                        "İkizler": "Zihinsel çeviklik, bilgi akışı, adaptasyon.",
-                        "Yengeç": "Derin duygusal hafıza, koruyuculuk, yuva bilinci.",
-                        "Aslan": "Yaratıcı özgüven, sahne ışığı, kalpten liderlik.",
-                        "Başak": "Analitik zeka, detaylardaki mükemmellik, hizmet bilinci.",
-                        "Terazi": "İlahi denge, adalet, estetik uyum."
+                        "Oğlak": ("Yapılandırma ve sabır", "köklenmek ve sorumlulukları hafifletmek"),
+                        "Koç": ("Öncü ateş ve cesaret", "enerjiyi kontrollü yönlendirmek"),
+                        "Yay": ("Keşif ve vizyon", "zihinsel ufukları genişletmek"),
+                        "Kova": ("Evrensel bilinç ve yenilik", "toplumsal uyaranlardan arınmak"),
+                        "Balık": ("Şefkat ve sınırsız sezgi", "duygusal sınırları korumak"),
+                        "Akrep": ("Derin dönüşüm ve kriz direnci", "kontrolü bırakıp akışa güvenmek"),
+                        "Boğa": ("Toprak dinginliği ve kararlılık", "bedensel konfora odaklanmak"),
+                        "İkizler": ("Zihinsel çeviklik ve iletişim", "zihinsel kalabalığı sakinleştirmek"),
+                        "Yengeç": ("Duygusal hafıza ve koruyuculuk", "öz şefkat alanları yaratmak"),
+                        "Aslan": ("Yaratıcı özgüven ve liderlik", "kalpten gelen ifadelere alan açmak"),
+                        "Başak": ("Analitik düzen ve şifa bilinci", "mükemmeliyetçi baskıyı hafifletmek"),
+                        "Terazi": ("İlahi denge ve uyum", "karar aşamasındaki tereddütleri aşmak")
                     }
 
-                    gunes_detay = harita_metinleri.get(gunes_burcu, "")
-                    ay_detay = harita_metinleri.get(ay_burcu, "")
+                    gunes_ozellik, gunes_tavsiye = harita_metinleri.get(gunes_burcu, ("Denge", "merkezlenmek"))
+                    ay_ozellik, ay_tavsiye = harita_metinleri.get(ay_burcu, ("Akış", "huzur bulmak"))
 
                     # --- ARAYÜZ SUNUMU ---
                     with st.container(border=True):
@@ -130,9 +118,9 @@ with tab1:
 
                     with st.container(border=True):
                         st.subheader("🌌 Gerçek Ephemeris Kozmik Harita")
-                        st.markdown(f"**Güneş Konumu (Öz Kimlik):** {gunes_burcu} — *{gunes_detay}*")
+                        st.markdown(f"**Güneş Konumu (Öz Kimlik):** {gunes_burcu} — *{gunes_ozellik}*")
                         st.divider()
-                        st.markdown(f"**Ay Konumu (Duygusal Katman):** {ay_burcu} — *{ay_detay}*")
+                        st.markdown(f"**Ay Konumu (Duygusal Katman):** {ay_burcu} — *{ay_ozellik}*")
                         st.divider()
                         st.markdown(f"**Merkür (Zihin):** {merkur_burcu}  |  **Venüs (İlişkiler):** {venus_burcu}")
 
@@ -140,19 +128,24 @@ with tab1:
                         st.subheader("🏛️ Ruhun Mimarisi | Makro Bütünsel Sentez")
                         
                         st.markdown("### 1. Giriş ve Bütünsel Atmosfer")
-                        st.write(secilen_giris)
+                        st.write(f"Doğum haritandaki {gunes_burcu} enerjisi ile sesinin anlık akustik dalgalanması ({anlik_f0:.1f} Hz) bu analizde buluşarak sana özel bir frekans portresi çiziyor.")
 
                         st.markdown("### 2. Göksel Potansiyeller ve Element Sentezi")
-                        st.write(f"Karakterinin ana omurgasını oluşturan {gunes_burcu} ateşi/özü ile iç dünyanı besleyen {ay_burcu} dalgalanması, dış dünyaya verdiğin yanıtları biçimlendiriyor.")
+                        st.write(f"Kimliğinin temelini oluşturan {gunes_burcu} burcu ({gunes_ozellik}), iç dünyanı besleyen {ay_burcu} katmanı ise ({ay_ozellik}) ile harmanlanarak şu sıralar hayatı algılayış biçimini şekillendiriyor.")
 
                         st.markdown("### 3. Akustik Biyometrik Analiz")
-                        st.write(f"Ses kaydındaki {anlik_f0:.1f} Hz taban frekansı ve ölçülen {gerilim:.2f} gerilim katsayısı incelendiğinde: {ses_durum_yorumu}")
+                        st.write(f"{f0_yorum} {gerilim_yorum}")
 
                         st.markdown("### 4. Gölge Alanlar ve Dönüşüm Rehberliği")
-                        st.write(secilen_golge)
+                        st.write(f"Bu dönemde {gunes_tavsiye.lower()} ve {ay_tavsiye.lower()} konularında esneklik göstermek, zihinsel trafiğini rahatlatacaktır.")
 
                         st.markdown("### 5. Somatik ve Spiritüel Öneri Reçetesi")
-                        st.markdown(secilen_recete)
+                        if anlik_f0 > 230:
+                            st.markdown("- **Kristal Desteği:** Zihinsel ve sessel sakinlik için **Lapis Lazuli** veya **Akuamarin** taşı tercih edebilirsin.")
+                            st.markdown("- **Somatik Pratik:** Omuz ve boyun bölgesini esneten derin nefes çalışmalarıyla boğaz çakrandaki yoğunluğu dengeleyebilirsin.")
+                        else:
+                            st.markdown("- **Kristal Desteği:** Enerjini canlandırmak ve köklenmek için **Hematit** veya **Onyx** taşı kullanabilirsin.")
+                            st.markdown("- **Somatik Pratik:** Topraklanma egzersizleri ve tempolu yürüyüşlerle fiziksel enerjini yukarı taşıyabilirsin.")
 
                 except Exception as e:
                     st.error(f"Hata oluştu: {e}")
