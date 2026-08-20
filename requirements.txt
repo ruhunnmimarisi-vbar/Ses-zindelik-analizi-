@@ -4,5 +4,5 @@ numpy
 soundfile
 google-generativeai>=0.8.0
 noisereduce
-ephem
+pyephem
 
