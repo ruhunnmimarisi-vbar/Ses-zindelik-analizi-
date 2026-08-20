@@ -118,8 +118,6 @@ with tab1:
                     # --- COĞRAFİ YÜKSELEN (ASCENDANT) HESAPLAMA ---
                     gmst = observer.sidereal_time()
                     lmst = float(gmst) + float(observer.lon)
-                    
-                    # Dünya'nın ortalama eksen eğikliği (yaklaşık 23.4369 derece)
                     eps = 23.4369 * np.pi / 180.0 
                     lat_rad = float(observer.lat)
 
@@ -194,6 +192,25 @@ with tab1:
                         "Terazi": "İlahi denge, adalet, estetik uyum."
                     }
 
+                    # --- KAD - GAD DETAYLI YORUM SÖZLÜĞÜ ---
+                    kad_gad_detaylari = {
+                        ("Akrep", "Boğa"): "Bu aks, maddi ve manevi güvenlik alanından (Boğa) çıkıp, hayatın dönüştürücü krizleriyle yüzleşmeye ve ruhsal derinliğe (Akrep) adım atmayı öğreten köklü bir evrim yoludur.",
+                        ("Boğa", "Akrep"): "Krizlerden ve karmaşık bağlardan arınıp; hayatın somut, huzurlu, sade ve topraklanmış güzelliklerini (Boğa) inşa etme zamanını müjdeler.",
+                        ("Koç", "Terazi"): "Başkalarının onayına ve ilişkilerdeki dengeye fazlaca odaklanmak (Terazi) yerine; kendi bireysel gücünü, cesaretini ve benliğini (Koç) ortaya koyma yolculuğudur.",
+                        ("Terazi", "Koç"): "Bireysel sabırsızlığı ve ben-merkezciliği bir kenara bırakıp; ortaklaşa yürümeyi, uyumu, uzlaşıyı ve ilişkilerde adaleti (Terazi) öğrenme kapısıdır.",
+                        ("İkizler", "Yay"): "Tek bir dogma veya inanca saplanıp kalmak yerine; bilgiye açık olmayı, esnekliği, çevreyi ve yakın çevrenle kurduğun merak dolu iletişimi (İkizler) geliştirir.",
+                        ("Yay", "İkizler"): "Yüzeysel bilgilerde ve sürekli bir zihinsel koşturmacada kaybolmak yerine; hayata büyük resmi, felsefi bir derinliği ve anlam arayışını (Yay) katma zamanıdır.",
+                        ("Yengeç", "Oğlak"): "Aşırı kariyer odaklı, katı ve duyguları bastıran yapıdan (Oğlak) sıyrılarak; içsel yuva bilincine, şefkate, sezgilere ve aileye (Yengeç) alan açar.",
+                        ("Oğlak", "Yengeç"): "Geçmişin aşırı duygusal ve bağımlı limanlarından (Yengeç) özgürleşerek; kendi ayakları üstünde duran, sorumluluk alan ve yapı kuran (Oğlak) olgunluğa erişmektir.",
+                        ("Aslan", "Kova"): "Grup içlerinde kaybolmak veya sadece toplumsal projelerle sınırlı kalmak yerine; kendi özgün yaratıcılığını, kalpten liderliğini ve sahne ışığını (Aslan) parlatma vaktidir.",
+                        ("Kova", "Aslan"): "Bireysel gururdan, sürekli onaylenme ihtiyacından ve ben merkezcilikten arınarak; evrensel insanlığa hizmet etmeyi ve kolektif vizyonu (Kova) kucaklarsın.",
+                        ("Başak", "Balık"): "Kurban psikolojisinden, dağınıklıktan ve belirsizlikten çıkıp; analitik zekayı, şifa vermeyi, düzen kurmayı ve detaylardaki hizmeti (Başak) benimseme yoludur.",
+                        ("Balık", "Başak"): "Aşırı eleştirel, detaylarda boğulan ve her şeyi kontrol etme çabasında olan zihni (Başak) dinlendirip; ilahi akışa güvenmeyi ve evrensel şefkati (Balık) seçmektir."
+                    }
+
+                    # Varsayılan genel açıklama (eşleşme olmazsa diye)
+                    kader_aksı_yorumu = kad_gad_detaylari.get((kad_burcu, gad_burcu), f"Güney Ay Düğümü'nün ({gad_burcu}) taşıdığı geçmiş alışkanlıklardan arınarak, Kuzey Ay Düğümü'nün ({kad_burcu}) işaret ettiği yeni ruhsal deneyimlere ve gelişim alanına doğru cesurca ilerlemen gereken dönüm noktasındasın.")
+
                     gunes_detay = harita_metinleri.get(gunes_burcu, "")
                     ay_detay = harita_metinleri.get(ay_burcu, "")
                     yukselen_detay = harita_metinleri.get(yukselen_burc, "")
@@ -215,6 +232,7 @@ with tab1:
                         st.markdown(f"**Ay Konumu (Duygusal Katman):** {ay_burcu} — *{ay_detay}*")
                         st.divider()
                         st.markdown(f"**Kuzey Ay Düğümü (KAD - Ruhsal Hedefin):** **{kad_burcu}**  |  **Güney Ay Düğümü (GAD - Geçmiş Yükün):** **{gad_burcu}**")
+                        st.markdown(f"*Kader Aksı Rehberliği:* {kader_aksı_yorumu}")
                         st.divider()
                         st.markdown(f"**Merkür (Zihin):** {merkur_burcu}  |  **Venüs (İlişkiler):** {venus_burcu}")
 
