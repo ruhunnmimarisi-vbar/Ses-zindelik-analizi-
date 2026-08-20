@@ -21,7 +21,7 @@ tab1, tab2 = st.tabs(["🔬 Makro Sentez & Kozmik Harita", "📖 Rehber Hakkınd
 with tab2:
     st.subheader("Ruhun Mimarisi ve Derin Sentez Altyapısı")
     st.write("""
-    **VBAR**, ses frekansınızdaki spektral dalgalanmaları ve gerilim indekslerini; gerçek gök günlüğü (Ephemeris), Yükselen Burç ve Ay Düğümü (KAD/GAD) hesaplamalarıyla harmanlayan özgün bir farkındalık platformudur.
+    **VBAR**, ses frekansınızdaki spektral dalgalanmaları ve gerilim indekslerini; gerçek gök günlüğü (Ephemeris), seçilen doğum yerine göre coğrafi Yükselen Burç ve Ay Düğümü (KAD/GAD) hesaplamalarıyla harmanlayan özgün bir farkındalık platformudur.
     """)
 
 with tab1:
@@ -40,6 +40,26 @@ with tab1:
             audio_bytes = uploaded_file.read()
 
     st.markdown("---")
+    
+    # --- DOĞUM YERİ SEÇİMİ ---
+    st.markdown("### 🌍 Doğum Yeri ve Tarihi Bilgileri")
+    sehirler = {
+        "Tekirdağ / Saray": (41.4389, 27.9228),
+        "İstanbul": (41.0082, 28.9784),
+        "Ankara": (39.9334, 32.8597),
+        "İzmir": (38.4192, 27.1287),
+        "Bursa": (40.1828, 29.0665),
+        "Antalya": (36.8969, 30.7133),
+        "Adana": (37.0000, 35.3213),
+        "Konya": (37.8667, 32.4833),
+        "Gaziantep": (37.0662, 37.3833),
+        "Trabzon": (41.0015, 39.7178),
+        "Diğer / Özel Konum": (41.0082, 28.9784) # Varsayılan merkez
+    }
+    
+    secilen_sehir = st.selectbox("Doğum Yeri (Şehir)", list(sehirler.keys()), index=0)
+    lat_val, lon_val = sehirler[secilen_sehir]
+
     col_g, col_a, col_y = st.columns(3)
     dogum_gun = col_g.selectbox("Gün", list(range(1, 32)), index=28)
     dogum_ay = col_a.selectbox("Ay", list(range(1, 13)), index=11)
@@ -51,7 +71,7 @@ with tab1:
 
     if audio_bytes:
         if st.button("✨ Makro Ephemeris Sentezini Başlat"):
-            with st.spinner("Yükselen burç, Ay düğümleri (KAD/GAD), akustik katmanlar ve ses frekansın harmanlanıyor..."):
+            with st.spinner(f"{secilen_sehir} koordinatları baz alınarak yükselen burç, Ay düğümleri ve ses frekansın harmanlanıyor..."):
                 try:
                     # Ses Analizi
                     y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
@@ -60,35 +80,51 @@ with tab1:
                     anlik_f0 = float(np.nanmean(pitches[pitches > 0])) if np.any(pitches > 0) else 210.0
                     gerilim = float((np.mean(librosa.feature.rms(y=y_denoised)) * 50) + (np.mean(librosa.feature.spectral_centroid(y=y_denoised, sr=sr)) / 400))
 
-                    # Astronomik Hesaplama Yardımcısı
+                    # Gözlemci Tanımlama (Seçilen Şehir Konumu)
+                    observer = ephem.Observer()
+                    observer.lat = str(lat_val)
+                    observer.lon = str(lon_val)
+                    observer.elevation = 150
+
+                    # UTC Zaman Ayarı (Türkiye GMT+3)
+                    utc_saat = (dogum_saat - 3) % 24
+                    tarih_str = f"{dogum_yil}/{dogum_ay}/{dogum_gun} {utc_saat}:{dogum_dakika}:00"
+                    observer.date = ephem.Date(tarih_str)
+
+                    # Astronomik Hesaplama Yardımcıları
                     def get_zodiac_sign_from_lon(lon_deg):
                         burclar = ["Koç", "Boğa", "İkizler", "Yengeç", "Aslan", "Başak", "Terazi", "Akrep", "Yay", "Oğlak", "Kova", "Balık"]
                         return burclar[int((lon_deg % 360) // 30)]
 
                     def get_zodiac_sign(body_obj, obs_date):
+                        body_obj.compute(obs_date)
                         ecl = ephem.Equatorial(body_obj.ra, body_obj.dec, epoch=obs_date)
                         ecl = ephem.Ecliptic(ecl)
                         lon_deg = float(ecl.lon) * 180.0 / np.pi
                         return get_zodiac_sign_from_lon(lon_deg)
 
-                    tarih_str = f"{dogum_yil}/{dogum_ay}/{dogum_gun} {dogum_saat}:{dogum_dakika}:00"
-                    observer_date = ephem.Date(tarih_str)
-                    
                     sun, moon, mercury, venus = ephem.Sun(), ephem.Moon(), ephem.Mercury(), ephem.Venus()
-                    sun.compute(observer_date); moon.compute(observer_date); mercury.compute(observer_date); venus.compute(observer_date)
 
-                    gunes_burcu = get_zodiac_sign(sun, observer_date)
-                    ay_burcu = get_zodiac_sign(moon, observer_date)
-                    merkur_burcu = get_zodiac_sign(mercury, observer_date)
-                    venus_burcu = get_zodiac_sign(venus, observer_date)
+                    gunes_burcu = get_zodiac_sign(sun, observer.date)
+                    ay_burcu = get_zodiac_sign(moon, observer.date)
+                    merkur_burcu = get_zodiac_sign(mercury, observer.date)
+                    venus_burcu = get_zodiac_sign(venus, observer.date)
 
-                    # --- YÜKSELEN (ASCENDANT) HESAPLAMA ---
-                    sidereal_time = (observer_date - int(observer_date)) * 360.0 + (dogum_saat * 15.0) + 28.0
-                    asc_lon = (sidereal_time + (dogum_dakika * 0.25)) % 360
-                    yukselen_burc = get_zodiac_sign_from_lon(asc_lon)
+                    # --- COĞRAFİ YÜKSELEN (ASCENDANT) HESAPLAMA ---
+                    gmst = observer.sidereal_time()
+                    lmst = float(gmst) + float(observer.lon)
+                    obliquity = ephem.obliquity()
+                    
+                    lat_rad = float(observer.lat)
+                    y_val = np.cos(lmst)
+                    x_val = -(np.sin(lmst) * np.cos(obliquity) + np.tan(lat_rad) * np.sin(obliquity))
+                    asc_rad = np.arctan2(y_val, x_val)
+                    asc_lon_deg = (asc_rad * 180.0 / np.pi) % 360
+                    yukselen_burc = get_zodiac_sign_from_lon(asc_lon_deg)
 
-                    # --- KAD VE GAD HESAPLAMA (Güvenli Dönüşüm) ---
-                    moon_ecl = ephem.Ecliptic(ephem.Equatorial(moon.ra, moon.dec, epoch=observer_date))
+                    # --- KAD VE GAD HESAPLAMA ---
+                    moon.compute(observer.date)
+                    moon_ecl = ephem.Ecliptic(ephem.Equatorial(moon.ra, moon.dec, epoch=observer.date))
                     moon_lon_deg = float(moon_ecl.lon) * 180.0 / np.pi
                     ay_dugumu_lon = (moon_lon_deg + 180.0) % 360
                     kad_burcu = get_zodiac_sign_from_lon(ay_dugumu_lon)
@@ -162,6 +198,8 @@ with tab1:
 
                     with st.container(border=True):
                         st.subheader("🌌 Gerçek Ephemeris Kozmik Harita & Kader Aksı")
+                        st.markdown(f"**Doğum Yeri:** {secilen_sehir}")
+                        st.divider()
                         st.markdown(f"**Yükselen Burç (Maske & Duruş):** {yukselen_burc} — *{yukselen_detay}*")
                         st.divider()
                         st.markdown(f"**Güneş Konumu (Öz Kimlik):** {gunes_burcu} — *{gunes_detay}*")
