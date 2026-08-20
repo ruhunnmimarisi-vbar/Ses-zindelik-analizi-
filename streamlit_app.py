@@ -5,6 +5,7 @@ import io
 import os
 import noisereduce as nr
 import ephem
+from openai import OpenAI
 
 # --- SAYFA YAPILANDIRMASI ---
 st.set_page_config(page_title="Ruhun Mimarisi | VBAR Biyometrik & Kozmik Harita", layout="centered", page_icon="🏛️")
@@ -15,6 +16,7 @@ st.markdown("""
     .report-card { border: 1px solid #d4af37; padding: 20px; border-radius: 12px; background: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 15px; }
     .title-box { text-align: center; color: #1b263b; border-bottom: 2px solid #d4af37; padding-bottom: 10px; margin-bottom: 20px; }
     .astro-box { background: #fdf6e3; border-left: 4px solid #d4af37; padding: 15px; border-radius: 8px; margin-top: 15px; line-height: 1.6; }
+    .ai-insight-box { background: #ffffff; border: 1.5px solid #1b263b; padding: 20px; border-radius: 12px; margin-top: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); line-height: 1.7; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -60,7 +62,7 @@ with tab1:
 
     if audio_bytes:
         if st.button("✨ Gerçek Ephemeris Kozmik Haritayı Başlat"):
-            with st.spinner("Gökyüzü konumu tropikal zodyak derecelerine göre hesaplanıyor..."):
+            with st.spinner("Gökyüzü konumu ve ses frekansları sentezleniyor..."):
                 try:
                     # Ses Analizi
                     y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
@@ -88,7 +90,42 @@ with tab1:
                     merkur_burcu = get_zodiac_sign(mercury, observer_date)
                     venus_burcu = get_zodiac_sign(venus, observer_date)
 
-                    # Arketip ve Detaylı Açıklamalar
+                    # OpenAI Entegrasyonu ile Akıllı Sentez Yorumu
+                    ai_yorum = "Yapay zeka yorumu üretilemedi."
+                    try:
+                        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+                        prompt = f"""
+                        Sen bir ses mühendisi, astroloji uzmanı ve bilgisayar mühendisisin.
+                        Kullanıcının şu verilerini analiz ederek derin, ruhsal ve teknik bir farkındalık raporu yaz:
+                        
+                        Teknik Ses Verileri:
+                        - Temel Frekans (F0): {anlik_f0:.1f} Hz
+                        - Gerilim / Enerji İndeksi: {gerilim:.2f}
+                        
+                        Astrolojik Yerleşimler:
+                        - Güneş (Öz Kimlik): {gunes_burcu}
+                        - Ay (Duygusal Katman): {ay_burcu}
+                        - Merkür (Zihin & İletişim): {merkur_burcu}
+                        - Venüs (İlişkiler & Değerler): {venus_burcu}
+                        
+                        İstenen Çıktı:
+                        1. Göksel Potansiyel: Haritadaki burçların birbiriyle olan dinamiğini kısaca açıkla.
+                        2. Akustik Yansıma: Ses verilerinin (frekans ve enerji) haritadaki potansiyeli şu an nasıl yansıttığını yorumla.
+                        3. Somatik ve Spiritüel Reçete: Kişinin dengelenmesi için bir doğal taş ve bir odaklanma/nefes önerisi sun.
+                        
+                        Üslup: Ruhun Mimarisi'ne uygun, derinlikli, şefkatli ve bilgece. Markdown formatında başlıklar kullanarak düzenli yaz.
+                        """
+                        
+                        response = client.chat.completions.create(
+                            model="gpt-4o-mini", # veya tercih edilen uygun bir model
+                            messages=[{"role": "user", "content": prompt}],
+                            temperature=0.7
+                        )
+                        ai_yorum = response.choices[0].message.content
+                    except Exception as ai_err:
+                        ai_yorum = f"Yapay zeka servisine bağlanırken bir hata oluştu (API anahtarınızı kontrol edin): {ai_err}"
+
+                    # Arketip Sözlüğü
                     harita_metinleri = {
                         "Oğlak": "<b>Oğlak Özü:</b> Yapılandırma, stratejik sabır, yüksek disiplin ve sarsılmaz sorumluluk bilinci.",
                         "Koç": "<b>Koç Özü:</b> Öncü ateş, cesaret, dinamizm ve saf irade.",
@@ -107,6 +144,7 @@ with tab1:
                     gunes_detay = harita_metinleri.get(gunes_burcu, "")
                     ay_detay = harita_metinleri.get(ay_burcu, "")
 
+                    # Arayüze Basma
                     st.markdown(f"""
                     <div class="report-card">
                         <h3 style="color: #1b263b; margin-top: 0;">🔬 Akustik Biyometrik Rapor</h3>
@@ -125,6 +163,12 @@ with tab1:
                         <p><b>İletişim & Zihin (Merkür):</b> {merkur_burcu} | <b>İlişkiler & Değerler (Venüs):</b> {venus_burcu}</p>
                         <p style="font-size: 0.9em; color: #555; margin-top: 10px;"><i>Bu harita; girdiğiniz tarih ve saat verilerinin ekliptik boylam dereceleri baz alınarak tropikal zodyak sistemine göre hesaplanmıştır.</i></p>
                     </div>
+                    
+                    <div class="ai-insight-box">
+                        <h3 style="color: #1b263b; margin-top: 0;">🏛️ Ruhun Mimarisi | Bütünsel Farkındalık Sentezi</h3>
+                        {ai_yorum}
+                    </div>
                     """, unsafe_allow_html=True)
+                    
                 except Exception as e:
                     st.error(f"Hata: {e}")
