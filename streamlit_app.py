@@ -80,22 +80,29 @@ with tab1:
                     merkur_burcu = get_zodiac_sign(mercury, observer_date)
                     venus_burcu = get_zodiac_sign(venus, observer_date)
 
-                    # Havuzlar
+                    # Tamamen Ayrıştırılmış Özgün Havuzlar
                     giris_havuzu = [
-                        "Sesinin tınısındaki bu anlık dalgalanma, gökyüzünün sana sunduğu potansiyel kapıların doğrudan bir yansımasıdır.",
-                        "Zihnindeki kadim bilgelik ile sesinin taşıdığı fiziksel frekans, şu an ortak bir paydada buluşuyor.",
-                        "Bu analiz, varlığının hem göksel mimarisini hem de sesindeki anlık titreşim gerilimini derinlemesine harmanlar."
+                        "Ses tellerinden yayılan bu ilk dalga, bilinç altındaki potansiyel enerjinin dış dünyayla kurduğu ilk temestir.",
+                        "Kozmik haritanın mimarisi ile sesinin anlık frekans tınısı, bu sentezde benzersiz bir ritim oluşturuyor.",
+                        "Konuşurken sergilediğin akustik akış, içsel dünyandaki arketipsel dengenin dışa vurulan sesli haritasıdır."
                     ]
                     secilen_giris = random.choice(giris_havuzu)
 
                     golge_havuzu = [
-                        "Aşırı odaklanma ya da kontrol etme isteği bazen içsel akışını yavaşlatabilir; esneklik burada en büyük anahtardır.",
-                        "Beklentilerin yoğunluğu ile zihinsel trafik arasında denge kurmak, enerjini doğru yere kanalize etmeni sağlayacaktır.",
-                        "İçsel sesindeki yoğunluk, dış dünyadan gelen uyaranlara karşı duyarlılığını artırabilir; kabulleniş şifadır."
+                        "Zihinsel planlar ile duygusal beklentiler arasında sıkışma hissedildiğinde, bedeni topraklamak en güvenli limandır.",
+                        "Mükemmeliyetçi ya da aşırı denetleyici tutumlar anın akışını kısıtlayabilir; bırak gitsin.",
+                        "Dış dünyadan gelen uyaranların sesine yansıyan yorgunluğu, ancak öz şefkat ve yavaşlama adımlarıyla şifalandırabilirsin."
                     ]
                     secilen_golge = random.choice(golge_havuzu)
 
-                    ses_durum_yorumu = "Ses enerjindeki yüksek yoğunluk, içsel dünyandaki dönüştürücü ateşin dışa vurduğunu gösteriyor." if gerilim > 3.5 else "Ses tonundaki sakin ve ölçülü frekans; enerjini stratejik bir dinginlikle koruduğunu yansıtıyor."
+                    reçete_havuzu = [
+                        "- **Kristal ve Doğal Taş Desteği:** Enerji alanını dengelemek için **Hematit** veya **Labradorit** bilekliği kullanabilirsin.\n- **Somatik Pratik:** Omuzları serbest bırakıp derin karın nefesleriyle boğaz çakrasındaki blokajı esnetebilirsin.",
+                        "- **Kristal ve Doğal Taş Desteği:** Duygusal akışını şifalandırmak adına **Lapis Lazuli** veya **Akuamarin** taşıyla odaklanabilirsin.\n- **Somatik Pratik:** Ayak tabanlarını yere tam basarak kısa bir yürüyüşle fiziksel köklenmeni güçlendirebilirsin.",
+                        "- **Kristal ve Doğal Taş Desteği:** Zihinsel berraklık için **Onyx** veya **Dağ Kristali** enerjisinden faydalanabilirsin.\n- **Somatik Pratik:** Ses tellerini dinlendiren ılık bitki çayları eşliğinde sessizlik molaları verebilirsin."
+                    ]
+                    secilen_recete = random.choice(reçete_havuzu)
+
+                    ses_durum_yorumu = "Ses enerjisindeki yoğun ivme, harekete geçme arzusunun ve dönüştürücü motivasyonun yüksek olduğunu gösteriyor." if gerilim > 3.5 else "Ses tonundaki sükunet ve dengeli frekans, stratejik bir içsel dinginlik inşa ettiğini simgeliyor."
 
                     harita_metinleri = {
                         "Oğlak": "Yapılandırma, stratejik sabır, sarsılmaz sorumluluk bilinci.",
@@ -115,7 +122,7 @@ with tab1:
                     gunes_detay = harita_metinleri.get(gunes_burcu, "")
                     ay_detay = harita_metinleri.get(ay_burcu, "")
 
-                    # --- GÖRSELLEŞTİRME (STREAMLIT NATIVE CONTAINERS) ---
+                    # --- ARAYÜZ SUNUMU ---
                     with st.container(border=True):
                         st.subheader("🔬 Makro Akustik Biyometrik Rapor")
                         st.metric("Ortalama Ses Frekansı (F0)", f"{anlik_f0:.1f} Hz")
@@ -136,17 +143,16 @@ with tab1:
                         st.write(secilen_giris)
 
                         st.markdown("### 2. Göksel Potansiyeller ve Element Sentezi")
-                        st.write(f"Güneş burcun olan {gunes_burcu} öz kimliğinin yapısını kurarken, Ay burcun {ay_burcu} duygusal akışını şekillendiriyor.")
+                        st.write(f"Karakterinin ana omurgasını oluşturan {gunes_burcu} ateşi/özü ile iç dünyanı besleyen {ay_burcu} dalgalanması, dış dünyaya verdiğin yanıtları biçimlendiriyor.")
 
                         st.markdown("### 3. Akustik Biyometrik Analiz")
-                        st.write(f"Sesinin {anlik_f0:.1f} Hz frekansı ve {gerilim:.2f} gerilim seviyesi incelendiğinde: {ses_durum_yorumu}")
+                        st.write(f"Ses kaydındaki {anlik_f0:.1f} Hz taban frekansı ve ölçülen {gerilim:.2f} gerilim katsayısı incelendiğinde: {ses_durum_yorumu}")
 
                         st.markdown("### 4. Gölge Alanlar ve Dönüşüm Rehberliği")
                         st.write(secilen_golge)
 
                         st.markdown("### 5. Somatik ve Spiritüel Öneri Reçetesi")
-                        st.markdown("- **Kristal Teması:** Enerjini dengelemek ve köklenmek için **Hematit**, **Lapis Lazuli** veya **Labradorit** taşlarıyla temas edebilirsin.")
-                        st.markdown("- **Nefes ve Ses Çalışması:** Diyaframını aktif kullanarak yapacağın derin nefes egzersizleri, ses frekansındaki gerilimi dengeleyerek boğaz çakrandaki akışı özgürleştirecektir.")
+                        st.markdown(secilen_recete)
 
                 except Exception as e:
                     st.error(f"Hata oluştu: {e}")
