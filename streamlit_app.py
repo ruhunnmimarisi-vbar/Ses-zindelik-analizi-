@@ -29,7 +29,9 @@ tab1, tab2 = st.tabs(["🔬 Biyometrik & Kozmik Harita", "📖 Hakkında"])
 
 with tab2:
     st.subheader("Ruhun Mimarisi ve Gerçek Kozmik Harita Altyapısı")
-    st.write("VBAR, ses frekansınızı gerçek astronomik konumlarla harmanlayan profesyonel bir kozmik rehberdir.")
+    st.write("""
+    **VBAR**, ses frekansınızdaki spektral dalgalanmaları; gerçek gök günlüğü (Ephemeris) hesaplamaları ve tropikal zodyak konumlarıyla harmanlayan profesyonel bir rehberdir.
+    """)
 
 with tab1:
     st.subheader("Ses Kaydı ve Doğum Haritası Verileri")
@@ -58,7 +60,7 @@ with tab1:
 
     if audio_bytes:
         if st.button("✨ Gerçek Ephemeris Kozmik Haritayı Başlat"):
-            with st.spinner("Hesaplanıyor..."):
+            with st.spinner("Gökyüzü konumu tropikal zodyak derecelerine göre hesaplanıyor..."):
                 try:
                     # Ses Analizi
                     y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
@@ -81,16 +83,47 @@ with tab1:
                     sun, moon, mercury, venus = ephem.Sun(), ephem.Moon(), ephem.Mercury(), ephem.Venus()
                     sun.compute(observer_date); moon.compute(observer_date); mercury.compute(observer_date); venus.compute(observer_date)
 
+                    gunes_burcu = get_zodiac_sign(sun, observer_date)
+                    ay_burcu = get_zodiac_sign(moon, observer_date)
+                    merkur_burcu = get_zodiac_sign(mercury, observer_date)
+                    venus_burcu = get_zodiac_sign(venus, observer_date)
+
+                    # Arketip ve Detaylı Açıklamalar
+                    harita_metinleri = {
+                        "Oğlak": "<b>Oğlak Özü:</b> Yapılandırma, stratejik sabır, yüksek disiplin ve sarsılmaz sorumluluk bilinci.",
+                        "Koç": "<b>Koç Özü:</b> Öncü ateş, cesaret, dinamizm ve saf irade.",
+                        "Yay": "<b>Yay Özü:</b> Keşif, felsefi derinlik ve engin bir vizyon.",
+                        "Kova": "<b>Kova Özü:</b> Evrensel vizyon, özgürlük ve yenilikçi zihin.",
+                        "Balık": "<b>Balık Özü:</b> Şefkat, evrensel akış ve sınırsız sezgi.",
+                        "Akrep": "<b>Akrep Özü:</b> Dönüşüm, mutlak sadakat ve derin sezgisel güç.",
+                        "Boğa": "<b>Boğa Özü:</b> Toprağın dinginliği, kararlılık ve estetik değerler.",
+                        "İkizler": "<b>İkizler Özü:</b> Zihinsel çeviklik ve çok yönlü iletişim.",
+                        "Yengeç": "<b>Yengeç Özü:</b> Duygusal hafıza ve koruyuculuk.",
+                        "Aslan": "<b>Aslan Özü:</b> Yaratıcı özgüven ve kalpten gelen liderlik.",
+                        "Başak": "<b>Başak Özü:</b> Analitik zeka ve şifa odaklı düzen.",
+                        "Terazi": "<b>Terazi Özü:</b> Denge, adalet ve ilişkilerde uyum."
+                    }
+
+                    gunes_detay = harita_metinleri.get(gunes_burcu, "")
+                    ay_detay = harita_metinleri.get(ay_burcu, "")
+
                     st.markdown(f"""
                     <div class="report-card">
-                        <h3>🔬 Akustik Biyometrik Rapor</h3>
-                        <p><b>F0:</b> {anlik_f0:.1f} Hz | <b>Enerji:</b> {gerilim:.2f}</p>
+                        <h3 style="color: #1b263b; margin-top: 0;">🔬 Akustik Biyometrik Rapor</h3>
+                        <p><b>Temel Frekans (F0):</b> {anlik_f0:.1f} Hz</p>
+                        <p><b>Gerilim / Enerji İndeksi:</b> {gerilim:.2f}</p>
                     </div>
+                    
                     <div class="astro-box">
-                        <h3>🌌 Kozmik Harita</h3>
-                        <p><b>Güneş:</b> {get_zodiac_sign(sun, observer_date)}</p>
-                        <p><b>Ay:</b> {get_zodiac_sign(moon, observer_date)}</p>
-                        <p><b>Merkür:</b> {get_zodiac_sign(mercury, observer_date)} | <b>Venüs:</b> {get_zodiac_sign(venus, observer_date)}</p>
+                        <h3 style="color: #1b263b; margin-top: 0;">🌌 Gerçek Ephemeris Kozmik Harita</h3>
+                        <p><b>Güneş Konumu (Öz Kimlik):</b> {gunes_burcu}</p>
+                        <p>{gunes_detay}</p>
+                        <hr style='border: 0.5px solid #d4af37; margin: 10px 0;'>
+                        <p><b>Ay Konumu (Duygusal Katman):</b> {ay_burcu}</p>
+                        <p>{ay_detay}</p>
+                        <hr style='border: 0.5px solid #d4af37; margin: 10px 0;'>
+                        <p><b>İletişim & Zihin (Merkür):</b> {merkur_burcu} | <b>İlişkiler & Değerler (Venüs):</b> {venus_burcu}</p>
+                        <p style="font-size: 0.9em; color: #555; margin-top: 10px;"><i>Bu harita; girdiğiniz tarih ve saat verilerinin ekliptik boylam dereceleri baz alınarak tropikal zodyak sistemine göre hesaplanmıştır.</i></p>
                     </div>
                     """, unsafe_allow_html=True)
                 except Exception as e:
