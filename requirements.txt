@@ -2,5 +2,6 @@ streamlit
 librosa
 noisereduce
 numpy
+git+https://github.com/georgkalantzis/flatlib.git
 flatlib
 
