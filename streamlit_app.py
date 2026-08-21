@@ -2,21 +2,24 @@ import streamlit as st
 import librosa
 import numpy as np
 import io
-import os
 import noisereduce as nr
 
 # --- SAYFA YAPILANDIRMASI ---
 st.set_page_config(page_title="Ruhun Mimarisi | Bütünsel Farkındalık Sentezi", layout="centered", page_icon="🏛️")
 
 st.title("🏛️ Ruhun Mimarisi | VBAR")
-st.subheader("Ses Kaydı ve Enerji Analizi")
+st.subheader("Bütünsel Ses ve Enerji Frekansı Analizi")
 
-# Mobil tarayıcılar için güvenli dosya / ses alma yöntemi
+st.markdown("""
+Bu prototip uygulama; ses tonunuzdaki akustik parametreleri (frekans, titreşim ve enerji yoğunluğunu) analiz ederek içsel ritminiz ve zindelik seviyeniz hakkında bütünsel bir farkındalık aynası sunar.
+""")
+
+# Veri Sağlama Yöntemi
 upload_option = st.radio("Veri Sağlama Yöntemi:", ["Mikrofon ile Kayıt Yap", "Ses Dosyası Yükle"], key="veri_saglama_yontemi")
 audio_bytes = None
 
 if upload_option == "Mikrofon ile Kayıt Yap":
-    audio_file = st.audio_input("Lütfen konuşun", key="mobil_mikrofon_input")
+    audio_file = st.audio_input("Lütfen konuşun veya sesinizi kaydedin", key="mobil_mikrofon_input")
     if audio_file is not None:
         audio_bytes = audio_file.read()
 else:
@@ -27,21 +30,44 @@ else:
 st.markdown("---")
 
 if audio_bytes is not None:
-    if st.button("✨ Akustik Analizi Başlat", key="analiz_baslat_btn"):
-        with st.spinner("Ses dalgalarınız analiz ediliyor..."):
+    if st.button("✨ Akustik Analizi ve Sentezi Başlat", key="analiz_baslat_btn"):
+        with st.spinner("Ses dalgalarınız ve enerji akışınız çözümleniyor..."):
             try:
-                # Ses Analizi
+                # Akustik Hesaplamalar
                 y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
                 y_denoised = nr.reduce_noise(y=y, sr=sr, prop_decrease=0.7)
                 pitches, _ = librosa.piptrack(y=y_denoised, sr=sr, fmin=80, fmax=400)
+                
                 anlik_f0 = float(np.nanmean(pitches[pitches > 0])) if np.any(pitches > 0) else 210.0
-                gerilim = float((np.mean(librosa.feature.rms(y=y_denoised)) * 50) + (np.mean(librosa.feature.spectral_centroid(y=y_denoised, sr=sr)) / 400))
+                rms_val = float(np.mean(librosa.feature.rms(y=y_denoised)))
+                cent_val = float(np.mean(librosa.feature.spectral_centroid(y=y_denoised, sr=sr)))
+                gerilim = (rms_val * 50) + (cent_val / 400)
 
+                # Sonuç Paneli
                 with st.container(border=True):
                     st.subheader("🔬 Akustik Biyometrik Rapor")
-                    st.metric("Ortalama Ses Frekansı (F0)", f"{anlik_f0:.1f} Hz")
-                    st.metric("Gerilim / Enerji İndeksi", f"{gerilim:.2f}")
-                    st.write(f"Sesinizin {anlik_f0:.1f} Hz seviyesindeki titreşimi, içsel ritminiz ve enerji akışınız hakkında önemli ipuçları sunuyor.")
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.metric("Ortalama Ses Frekansı (F0)", f"{anlik_f0:.1f} Hz")
+                    with col2:
+                        st.metric("Gerilim / Enerji İndeksi", f"{gerilim:.2f}")
+
+                # Bütünsel Yorumlar ve Farkındalık Alanı
+                with st.container(border=True):
+                    st.subheader("🌿 Ruhun Mimarisi | Bütünsel Yansıma")
+                    
+                    if anlik_f0 < 150:
+                        enerji_durumu = "Derin, köklenen ve sükûnet arayan bir ton."
+                        tavsiye = "Bugün fiziksel bedeninizle bağınızı güçlendirecek somatic egzersizler ve toprak elementini temsil eden doğal taşlar (Onyx veya Hematit) size denge getirebilir."
+                    elif anlik_f0 < 250:
+                        enerji_durumu = "Dengeli, akışta ve merkezlenen bir ifade."
+                        tavsiye = "İçsel dengeyi korumak adına nefes farkındalığı çalışmaları ve Lapis Lazuli enerjisi zihinsel netliğinizi destekleyebilir."
+                    else:
+                        enerji_durumu = "Yüksek canlılık, dinamik ve zihinsel hareketlilik."
+                        tavsiye = "Bu yüksek enerjiyi dengelemek için su kenarında yürüyüşler yapmak ve zihni sakinleştiren bitki çaylarına yönelmek şifalı olacaktır."
+
+                    st.markdown(f"**Ses Titreşim Analizi:** {enerji_durumu}")
+                    st.markdown(f"**Bütünsel Rehberlik:** {tavsiye}")
 
             except Exception as e:
-                st.error(f"Hata oluştu: {e}")
+                st.error(f"Analiz sırasında bir hata oluştu: {e}")
