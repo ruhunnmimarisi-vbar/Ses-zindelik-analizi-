@@ -5,17 +5,32 @@ import io
 import noisereduce as nr
 
 # --- SAYFA YAPILANDIRMASI ---
-st.set_page_config(page_title="Ruhun Mimarisi | Bütünsel Farkındalık Sentezi", layout="centered", page_icon="🏛️")
+st.set_page_config(page_title="Ruhun Mimarisi | VBAR Bütünsel Sentez", layout="centered", page_icon="🏛️")
 
 st.title("🏛️ Ruhun Mimarisi | VBAR")
-st.subheader("Bütünsel Ses ve Enerji Frekansı Analizi")
+st.subheader("Bütünsel Ses, Enerji ve Farkındalık Analizi")
 
 st.markdown("""
-Bu prototip uygulama; ses tonunuzdaki akustik parametreleri (frekans, titreşim ve enerji yoğunluğunu) analiz ederek içsel ritminiz ve zindelik seviyeniz hakkında bütünsel bir farkındalık aynası sunar.
+Bu prototip uygulama; ses tonunuzdaki akustik parametreleri (frekans, titreşim, gerilim) ve burç enerjilerinizi sentezleyerek içsel ritminiz hakkında bütünsel bir farkındalık aynası sunar.
 """)
 
-# Veri Sağlama Yöntemi
-upload_option = st.radio("Veri Sağlama Yöntemi:", ["Mikrofon ile Kayıt Yap", "Ses Dosyası Yükle"], key="veri_saglama_yontemi")
+# --- KULLANICI GİRDİLERİ (BURÇ & SES) ---
+with st.container(border=True):
+    st.subheader("✨ Doğum Haritası / Astrolojik Altyapı")
+    col_b1, col_b2, col_b3 = st.columns(3)
+    with col_b1:
+        gun = st.number_input("Gün", min_value=1, max_value=31, value=29)
+    with col_b2:
+        ay = st.selectbox("Ay", ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"], index=11)
+    with col_b3:
+        yil = st.number_input("Yıl", min_value=1940, max_value=2015, value=1984)
+
+    burc_secimi = st.selectbox("Güneş Burcunuz (veya Yükseleniniz)", ["Koç", "Boğa", "İkizler", "Yengeç", "Aslan", "Başak", "Terazi", "Akrep", "Yay", "Oğlak", "Kova", "Balık"], index=9)
+
+st.markdown("---")
+
+# Veri Sağlama Yöntemi (Mobil Uyumludur)
+upload_option = st.radio("Ses Verisi Sağlama Yöntemi:", ["Mikrofon ile Kayıt Yap", "Ses Dosyası Yükle"], key="veri_saglama_yontemi")
 audio_bytes = None
 
 if upload_option == "Mikrofon ile Kayıt Yap":
@@ -30,8 +45,8 @@ else:
 st.markdown("---")
 
 if audio_bytes is not None:
-    if st.button("✨ Akustik Analizi ve Sentezi Başlat", key="analiz_baslat_btn"):
-        with st.spinner("Ses dalgalarınız ve enerji akışınız çözümleniyor..."):
+    if st.button("✨ Akustik ve Bütünsel Analizi Başlat", key="analiz_baslat_btn"):
+        with st.spinner("Ses dalgalarınız ve element dengeniz çözümleniyor..."):
             try:
                 # Akustik Hesaplamalar
                 y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
@@ -54,20 +69,39 @@ if audio_bytes is not None:
 
                 # Bütünsel Yorumlar ve Farkındalık Alanı
                 with st.container(border=True):
-                    st.subheader("🌿 Ruhun Mimarisi | Bütünsel Yansıma")
+                    st.subheader("🌿 Ruhun Mimarisi | Bütünsel Yansıma ve Sentez")
                     
-                    if anlik_f0 < 150:
-                        enerji_durumu = "Derin, köklenen ve sükûnet arayan bir ton."
-                        tavsiye = "Bugün fiziksel bedeninizle bağınızı güçlendirecek somatic egzersizler ve toprak elementini temsil eden doğal taşlar (Onyx veya Hematit) size denge getirebilir."
-                    elif anlik_f0 < 250:
-                        enerji_durumu = "Dengeli, akışta ve merkezlenen bir ifade."
-                        tavsiye = "İçsel dengeyi korumak adına nefes farkındalığı çalışmaları ve Lapis Lazuli enerjisi zihinsel netliğinizi destekleyebilir."
-                    else:
-                        enerji_durumu = "Yüksek canlılık, dinamik ve zihinsel hareketlilik."
-                        tavsiye = "Bu yüksek enerjiyi dengelemek için su kenarında yürüyüşler yapmak ve zihni sakinleştiren bitki çaylarına yönelmek şifalı olacaktır."
+                    # Burç bazlı element eşleştirmesi
+                    elementler = {
+                        "Koç": "Ateş", "Aslan": "Ateş", "Yay": "Ateş",
+                        "Boğa": "Toprak", "Başak": "Toprak", "Oğlak": "Toprak",
+                        "İkizler": "Hava", "Terazi": "Hava", "Kova": "Hava",
+                        "Yengeç": "Su", "Akrep": "Su", "Balık": "Su"
+                    }
+                    secilen_element = elementler.get(burc_secimi, "Toprak")
 
-                    st.markdown(f"**Ses Titreşim Analizi:** {enerji_durumu}")
-                    st.markdown(f"**Bütünsel Rehberlik:** {tavsiye}")
+                    if anlik_f0 < 150:
+                        ses_yorumu = "Derin, köklenen, otoriter ve sükûnet arayan bir ton."
+                    elif anlik_f0 < 250:
+                        ses_yorumu = "Dengeli, akışta, merkezlenen ve şefkatli bir ifade."
+                    else:
+                        ses_yorumu = "Yüksek canlılık, dinamik, ilham veren ve zihinsel hareketlilik."
+
+                    st.markdown(f"**Burç & Element Matrisi:** {burc_secimi} burcu ({secilen_element} elementi) ile ses titreşiminiz arasındaki uyum haritalandı.")
+                    st.markdown(f"**Ses Titreşim Profili:** {ses_yorumu}")
+                    
+                    # Doğal taş ve şifa önerileri
+                    if secilen_element == "Toprak":
+                        tas_onerisi = "Onyx, Hematit veya Akik (Topraklanma ve fiziksel zindelik için)"
+                    elif secilen_element == "Ateş":
+                        tas_onerisi = "Kırmızı Agat veya Obsidyen (İçsel ateşi dengelemek ve koruma için)"
+                    elif secilen_element == "Hava":
+                        tas_onerisi = "Labradorit veya Beril (Zihinsel odak ve akışkanlık için)"
+                    else:
+                        tas_onerisi = "Lapis Lazuli veya Akuamarin (Duygusal berraklık ve şifa için)"
+
+                    st.markdown(f"**Önerilen Doğal Taş Desteği:** {tas_onerisi}")
+                    st.markdown(f"**Bütünsel Pratik Tavsiyesi:** Bugün somatik nefes çalışmaları ve doğada (veya su kenarında) kısa bir yürüyüş, enerji alanınızı tamamen tazeleyecektir.")
 
             except Exception as e:
                 st.error(f"Analiz sırasında bir hata oluştu: {e}")
