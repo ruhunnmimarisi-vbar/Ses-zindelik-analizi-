@@ -8,7 +8,7 @@ import noisereduce as nr
 # --- SAYFA YAPILANDIRMASI ---
 st.set_page_config(page_title="Ruhun Mimarisi | VBAR Bütünsel Sentez", layout="centered", page_icon="🏛️")
 
-# LOGO (Tam Genişlik / Büyük Görünüm)
+# LOGO (Tam Genişlik)
 if os.path.exists("1783526207831.png"):
     st.image("1783526207831.png", use_container_width=True)
 
@@ -16,13 +16,29 @@ st.title("🏛️ Ruhun Mimarisi | VBAR")
 st.subheader("Bütünsel Ses, Enerji ve Farkındalık Analizi")
 
 st.markdown("""
-Ses tonunuzdaki akustik parametreleri (frekans, titreşim, gerilim) ve astrolojik altyapınızı sentezleyerek içsel ritminiz hakkında derinlemesine bir farkındalık aynası sunar.
+Sesinizin akustik tınısı ile doğum haritanızın kozmik frekansını sentezleyerek içsel ritminiz ve zindeliğiniz hakkında derinlemesine bir farkındalık aynası sunar.
 """)
 
-# --- KULLANICI GİRDİLERİ (BURÇ & ASTROLOJİ DETAYLARI) ---
-with st.container(border=True):
-    st.subheader("✨ Doğum Haritası & Astrolojik Veriler")
+# --- OTOMATİK BURÇ HESAPLAMA FONKSİYONU ---
+def burc_hesapla(gun, ay):
+    ay_idx = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"].index(ay) + 1
     
+    if (ay_idx == 3 and gun >= 21) or (ay_idx == 4 and gun <= 20): return "Koç", "Ateş"
+    elif (ay_idx == 4 and gun >= 21) or (ay_idx == 5 and gun <= 20): return "Boğa", "Toprak"
+    elif (ay_idx == 5 and gun >= 21) or (ay_idx == 6 and gun <= 20): return "İkizler", "Hava"
+    elif (ay_idx == 6 and gun >= 21) or (ay_idx == 7 and gun <= 22): return "Yengeç", "Su"
+    elif (ay_idx == 7 and gun >= 23) or (ay_idx == 8 and gun <= 22): return "Aslan", "Ateş"
+    elif (ay_idx == 8 and gun >= 23) or (ay_idx == 9 and gun <= 22): return "Başak", "Toprak"
+    elif (ay_idx == 9 and gun >= 23) or (ay_idx == 10 and gun <= 22): return "Terazi", "Hava"
+    elif (ay_idx == 10 and gun >= 23) or (ay_idx == 11 and gun <= 21): return "Akrep", "Su"
+    elif (ay_idx == 11 and gun >= 22) or (ay_idx == 12 and gun <= 21): return "Yay", "Ateş"
+    elif (ay_idx == 12 and gun >= 22) or (ay_idx == 1: gun <= 19): return "Oğlak", "Toprak"
+    elif (ay_idx == 1 and gun >= 20) or (ay_idx == 2 and gun <= 18): return "Kova", "Hava"
+    else: return "Balık", "Su"
+
+# --- KULLANICI GİRDİLERİ ---
+with st.container(border=True):
+    st.subheader("✨ Doğum Bilgileri")
     col_b1, col_b2, col_b3 = st.columns(3)
     with col_b1:
         gun = st.number_input("Gün", min_value=1, max_value=31, value=29)
@@ -31,11 +47,8 @@ with st.container(border=True):
     with col_b3:
         yil = st.number_input("Yıl", min_value=1940, max_value=2015, value=1984)
 
-    col_burc1, col_burc2 = st.columns(2)
-    with col_burc1:
-        gunes_burcu = st.selectbox("Güneş Burcu", ["Koç", "Boğa", "İkizler", "Yengeç", "Aslan", "Başak", "Terazi", "Akrep", "Yay", "Oğlak", "Kova", "Balık"], index=9)
-    with col_burc2:
-        yukselen_burcu = st.selectbox("Yükselen Burcu (Tahmini veya Bilinen)", ["Seçiniz...", "Koç", "Boğa", "İkizler", "Yengeç", "Aslan", "Başak", "Terazi", "Akrep", "Yay", "Oğlak", "Kova", "Balık"])
+    hesaplanan_burc, element = burc_hesapla(gun, ay)
+    st.info(f"Kozmik İmza: **{hesaplanan_burc}** burcu ({element} elementi)")
 
 st.markdown("---")
 
@@ -56,7 +69,7 @@ st.markdown("---")
 
 if audio_bytes is not None:
     if st.button("✨ Akustik ve Bütünsel Analizi Başlat", key="analiz_baslat_btn"):
-        with st.spinner("Ses dalgalarınız, element dengeniz ve frekans akışınız çözümleniyor..."):
+        with st.spinner("Ses dalgalarınız ve kozmik frekansınız çözümleniyor..."):
             try:
                 # Akustik Hesaplamalar
                 y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
@@ -77,45 +90,43 @@ if audio_bytes is not None:
                     with col2:
                         st.metric("Gerilim / Enerji İndeksi", f"{gerilim:.2f}")
 
-                # Derinlemesine Bütünsel Yorumlar ve Yönlendirmeler
+                # Derinlemesine Özgün Yorum Alanı
                 with st.container(border=True):
                     st.subheader("🌿 Ruhun Mimarisi | Derinlemesine Bütünsel Sentez")
                     
-                    elementler = {
-                        "Koç": "Ateş", "Aslan": "Ateş", "Yay": "Ateş",
-                        "Boğa": "Toprak", "Başak": "Toprak", "Oğlak": "Toprak",
-                        "İkizler": "Hava", "Terazi": "Hava", "Kova": "Hava",
-                        "Yengeç": "Su", "Akrep": "Su", "Balık": "Su"
-                    }
-                    element = elementler.get(gunes_burcu, "Toprak")
-
-                    st.markdown(f"**Astrolojik Matris:** Güneş Burcu: **{gunes_burcu}** ({element} Elementi) | Yükselen: **{yukselen_burcu}**")
-                    
+                    # Frekansa ve Elementə özel derin yorumlar
                     if anlik_f0 < 150:
-                        ses_analizi = "Ses tonunuz derin, köklenen, otoriter ve içsel sükûnet arayan bir frekansta."
+                        tiz_yorumu = "Sesiniz köklü, derin ve yeryüzüyle güçlü bir bağ kuran matra sahip. İçsel bir sükûnet arayışındasınız."
                     elif anlik_f0 < 250:
-                        ses_analizi = "Ses tonunuz dengeli, akışta, merkezlenen ve şefkatli bir ifade alanı sunuyor."
+                        tiz_yorumu = "Sesiniz akışkan, dengeli ve merkezinde duran şefkatli bir frekans yayıyor. Zihin ve beden uyum içinde."
                     else:
-                        ses_analizi = "Ses tonunuz yüksek canlılığa sahip, dinamik, ilham veren ve zihinsel hareketliliği yansıtıyor."
+                        tiz_yorumu = "Sesiniz yüksek bir canlılık, ilham ve zihinsel hareketlilik barındırıyor. Kabuğuna sığmayan bir enerji akışınız var."
 
-                    st.markdown(f"**Akustik Yansıma:** {ses_analizi}")
+                    element_yorumlari = {
+                        "Toprak": "Oğlak enerjisinin o sağlam, yapılandırıcı ve kararlı duruşu, sesinizin yeryüzü tonlarıyla bütünleşiyor. Sınırlarınızı korumak ve somatik olarak bedene yerleşmek bugün sizin için şifalı.",
+                        "Ateş": "İçsel ateşinizin yaratıcı kıvılcımı ses tonunuza yansıyor. Tutkulu ve yönlendirici bir enerji taşıyorsunuz.",
+                        "Hava": "Zihinsel çeviklik ve bilgi akışı ön planda. Kelimeleriniz rüzgar gibi özgür ve akışkan.",
+                        "Su": "Duygusal derinlik ve sezgisel akış sesinizin tınısına derinlik katıyor. İç dünyanız oldukça zengin."
+                    }
 
-                    # Taş ve Şifa Önerileri
-                    taslar = {"Toprak": "Onyx / Hematit", "Ateş": "Kırmızı Agat / Obsidyen", "Hava": "Labradorit", "Su": "Lapis Lazuli / Akuamarin"}
-                    onerilen_tas = taslar.get(element, "Onyx")
-                    st.markdown(f"**Destekleyici Doğal Taş:** {onerilen_tas}")
+                    st.markdown(f"**Akustik Yankı:** {tiz_yorumu}")
+                    st.markdown(f"**Elementsel Rehberlik ({element}):** {element_yorumlari.get(element, '')}")
+                    
+                    # Doğal Taş Önerisi
+                    taslar = {"Toprak": "Onyx ve Hematit", "Ateş": "Kırmızı Agat ve Obsidyen", "Hava": "Labradorit", "Su": "Lapis Lazuli ve Akuamarin"}
+                    st.markdown(f"**Şifalı Taş Frekansı:** Bu dönemde enerjinizi dengelemek için **{taslar.get(element, 'Onyx')}** enerjisinden destek alabilirsiniz.")
 
-                # --- DURUMSAL SOMATİK UYUM ALANI (Gerilim/Enerji İndeksine Göre Belirir) ---
+                # --- DURUMSAL SOMATİK UYUM ALANI ---
                 if gerilim > 4.5 or anlik_f0 > 230:
                     with st.container(border=True):
-                        st.subheader("🧘 Somatik Uyum ve Akış Alanı")
-                        st.info("Yüksek enerji veya zihinsel hareketlilik tespit edildi. Bu alanı dengelemek için aşağıdaki somatik ses çalışmasından faydalanabilirsiniz.")
+                        st.subheader("🧘 Somatik Uyum ve Arınma Alanı")
+                        st.info("Sesinizdeki yüksek gerilim veya hareketlilik, zihinsel bir mola vermeniz gerektiğine işaret ediyor. Bu akışı dengelemek için aşağıdaki çalışmayı dinleyebilirsiniz:")
                         if os.path.exists("rahatlama .mp3"):
                             st.audio("rahatlama .mp3", format="audio/mp3")
                         else:
-                            st.warning("Somatik ses dosyası (rahatlama .mp3) sunucu dizininde bulunamadı.")
+                            st.warning("Somatik ses dosyası (rahatlama .mp3) bulunamadı.")
                 else:
-                    st.success("✨ Enerji akışınız ve ses frekansınız oldukça dengeli ve sakin bir çizgide ilerliyor.")
+                    st.success("✨ Enerji alanınız oldukça sakin ve akışta. Bu merkezî huzuru korumaya özen gösterin.")
 
             except Exception as e:
                 st.error(f"Analiz sırasında bir hata oluştu: {e}")
