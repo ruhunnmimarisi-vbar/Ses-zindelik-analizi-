@@ -70,7 +70,7 @@ if st.session_state.analiz_yapildi:
         
         # Mail Hazırlığı
         mail_konu = "Detaylı VBAR Analiz Talebi"
-        mail_govde = f"""Merhabalar Meral Hanım,\n\nDetaylı VBAR analizi talep ediyorum.\n\nKişisel Bilgiler:\n- İsim Soyisim: {ad_soyad}\n- Doğum Tarihi: {dogum_tarihi_str}\n- Doğum Saati: {dogum_saati_str}\n- Doğum Yeri: {dogum_yeri_str}\n- Ses Frekansı (F0): {st.session_state.f0:.1f} Hz\n- Gerilim İndeksi: {st.session_state.gerilim:.2f}\n\nDekontum ektedir. Görüşmek dileğiyle."""
+        mail_govde = f"""Merhabalar,\n\nDetaylı VBAR analizi talep ediyorum.\n\nKişisel Bilgiler:\n- İsim Soyisim: {ad_soyad}\n- Doğum Tarihi: {dogum_tarihi_str}\n- Doğum Saati: {dogum_saati_str}\n- Doğum Yeri: {dogum_yeri_str}\n- Ses Frekansı (F0): {st.session_state.f0:.1f} Hz\n- Gerilim İndeksi: {st.session_state.gerilim:.2f}\n\nDekontum ektedir. Görüşmek dileğiyle."""
         
         mailto_link = f"mailto:Ruhunnmimarisi@gmail.com?subject={urllib.parse.quote(mail_konu)}&body={urllib.parse.quote(mail_govde)}"
         
@@ -84,5 +84,5 @@ st.markdown("---")
 with st.container(border=True):
     st.subheader("🔮 Detaylı Bireysel Analiz")
     st.metric("Detaylı Analiz Ücreti", "₺100")
-    st.write("1. **Ücreti gönderin:** TR00 0000 0000 0000 0000 0000 00 (Meral Erdil)")
-    st.write("2. **Talep edin:** Yukarıdaki butonu kullanarak verilerinizi ve dekontunuzu bana iletin.")
+    st.write("1. **Ücret ve Talep:** Detaylı analiz için ödeme yaptıktan sonra, yukarıdaki butonu kullanarak verilerinizi ve dekontunuzu doğrudan bana iletebilirsiniz.")
+    st.write("📩 **İletişim:** `Ruhunnmimarisi@gmail.com`")
