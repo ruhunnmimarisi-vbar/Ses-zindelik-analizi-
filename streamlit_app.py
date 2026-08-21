@@ -4,70 +4,63 @@ import numpy as np
 import io
 import os
 import noisereduce as nr
-from datetime import datetime
 
-# --- SAYFA YAPILANDIRMASI ---
 st.set_page_config(page_title="Ruhun Mimarisi | VBAR Bütünsel Sentez", layout="centered", page_icon="🏛️")
 
-if os.path.exists("1783526207831.png"):
-    st.image("1783526207831.png", use_container_width=True)
+# VBAR AÇIKLAMASI
+with st.expander("🏛️ VBAR Nedir? Bütünsel Farkındalık Aynası"):
+    st.markdown("""
+    **VBAR (Voice-Body-Astrology Resonance)**, sesinizin frekansı ile gökyüzünün kozmik izdüşümünü sentezleyen bütünsel bir farkındalık aracıdır.
+    Sesiniz, o anki duygusal ve fiziksel durumunuzun yansıması; doğum haritanız ise ruhunuzun mimari planıdır.
+    VBAR, bu iki frekansı birleştirerek sizi şefkatli bir öz-farkındalık alanına davet eder.
+    """)
 
-st.title("🏛️ Ruhun Mimarisi | VBAR")
-st.markdown("> *“Sesiniz, iç dünyanızın coğrafyasını ve an’daki frekansınızı fısıldar. Derin bir nefes alın ve içsel Mimarınıza kulak verin.”*")
-st.markdown("---")
-
-# --- GELİŞMİŞ ASTROLOJİK HESAPLAMA ---
-# Yükselen ve Kadrant hesaplaması için temel bir mantık katmanı (Sadeleştirilmiş Placidus mantığı)
-def astrolojik_sentez(gun, ay, yil, saat):
-    # Basit bir yükselen tahmini algoritması (Doğum saati ve gün üzerinden)
-    saat_faktoru = (saat + (gun / 30)) % 24
-    burclar = ["Koç", "Boğa", "İkizler", "Yengeç", "Aslan", "Başak", "Terazi", "Akrep", "Yay", "Oğlak", "Kova", "Balık"]
-    yukselen_idx = int(saat_faktoru / 2)
-    yukselen = burclar[yukselen_idx]
-    
-    # Kadrant Analizi (1-3, 4-6, 7-9, 10-12 evler)
-    kadrant = "Güney (Dışsal/Sosyal)" if 6 <= saat < 18 else "Kuzey (İçsel/Ruhsal)"
-    return yukselen, kadrant
-
-# --- KULLANICI GİRDİLERİ ---
+# DOĞUM BİLGİLERİ VE KONUM
 with st.container(border=True):
-    st.subheader("✨ Kozmik Zamanlama (Doğum Bilgileri)")
-    col1, col2, col3 = st.columns(3)
-    gun = col1.number_input("Gün", 1, 31, 29)
-    ay = col2.selectbox("Ay", ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"], 11)
-    yil = col3.number_input("Yıl", 1940, 2015, 1984)
-    saat = st.slider("Doğum Saati", 0, 23, 12)
+    st.subheader("✨ Kozmik Yapı ve Konum")
+    col1, col2 = st.columns(2)
     
-    yukselen, kadrant = astrolojik_sentez(gun, ay, yil, saat)
-    st.info(f"Yükselen Burç: **{yukselen}** | Yaşam Kadrantı: **{kadrant}**")
+    yukselen_burc = col1.selectbox("Yükselen Burcunuzu Seçin:", 
+        ["Koç", "Boğa", "İkizler", "Yengeç", "Aslan", "Başak", "Terazi", "Akrep", "Yay", "Oğlak", "Kova", "Balık"], 
+        index=4)
+    
+    dogum_yeri = col2.text_input("Doğum Yeri (Şehir/Ülke):", placeholder="Örn: İstanbul, Türkiye")
+    
+    st.info(f"Seçilen Kozmik Yapı: **Yükselen {yukselen_burc}** | Konum: **{dogum_yeri if dogum_yeri else 'Belirtilmedi'}**")
+
+# SES ANALİZİ
+audio_input = st.audio_input("Analiz için sesinizi kaydedin")
+
+if audio_input:
+    if st.button("✨ Analizi Başlat"):
+        try:
+            audio_data = audio_input.read()
+            y, sr = librosa.load(io.BytesIO(audio_data), sr=16000)
+            rms = np.mean(librosa.feature.rms(y=y))
+            
+            st.success("Analiz tamamlandı.")
+            st.write(f"**Yükselen {yukselen_burc}** enerjisi, {dogum_yeri} konumu ve sesinizin {rms:.4f} enerji yoğunluğu ile dengeleniyor.")
+        except Exception as e:
+            st.error(f"Ses işleme hatası: {e}")
 
 st.markdown("---")
 
-# SES VERİSİ
-audio_bytes = st.audio_input("Lütfen analize başlamak için sesinizi kaydedin")
-
-if audio_bytes:
-    if st.button("✨ Bütünsel Analizi Başlat"):
-        with st.spinner("Ses tınısı ve yıldız haritası sentezleniyor..."):
-            try:
-                y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
-                pitches, _ = librosa.piptrack(y=y, sr=sr)
-                anlik_f0 = float(np.nanmean(pitches[pitches > 0])) if np.any(pitches > 0) else 210.0
-                
-                with st.container(border=True):
-                    st.subheader("🌿 Ruhun Mimarisi | Derinlemesine Analiz")
-                    st.markdown(f"**Yükseleniniz {yukselen}**'in getirdiği dışsal ifade biçimi ile sesinizin {anlik_f0:.1f} Hz frekansı uyumlanıyor.")
-                    st.markdown(f"**Kadrant Analizi:** Şu an {kadrant} kadrantında bir enerji akışına sahipsiniz. Bu durum içsel odaklanmanızın yoğunluğunu gösteriyor.")
-                    
-                    if yukselen == "Aslan":
-                        st.markdown("**Not:** Yükselen Aslan, sesinize otoriter ve parlak bir tını katar; bugün bu parlaklığı kullanma gününüz.")
-                    
-                    # SOMATİK UYUM (Sadece ihtiyaç anında)
-                    if anlik_f0 > 230:
-                        st.subheader("🧘 Somatik Uyum ve Arınma")
-                        if os.path.exists("rahatlama .mp3"):
-                            st.audio("rahatlama .mp3")
-                        else:
-                            st.warning("Somatik kayıt bulunamadı.")
-            except Exception as e:
-                st.error("Analiz verisi işlenemedi.")
+# DETAYLI ANALİZ DANIŞMANLIĞI
+with st.container(border=True):
+    st.subheader("🔮 Detaylı Bireysel Analiz")
+    st.write("""
+    Bu sistem size anlık bir farkındalık aynası sunar. Eğer doğum haritanızın derinliklerine inen, yaşam döngülerinizi, 
+    sesinizin potansiyelini ve somatik ihtiyaçlarınızı içeren **kişiye özel detaylı bir analiz** isterseniz, 
+    size rehberlik etmeye hazırım.
+    """)
+    
+    st.markdown("---")
+    st.metric("Detaylı Analiz Ücreti", "₺100")
+    
+    st.write("Detaylı analiz için aşağıdaki adımları izleyebilirsiniz:")
+    st.info("1. **Ücreti Gönderin:** TR00 0000 0000 0000 0000 0000 00 (Meral Erdil)")
+    st.write("2. **Analiz Talep Edin:** Dekontunuzu ve doğum bilgilerinizi (gün/ay/yıl/saat/dakika/doğum yeri) aşağıdaki mail adresime iletin.")
+    
+    st.subheader("📩 İletişim")
+    st.markdown("📧 **E-posta:** `Ruhunnmimarisi@gmail.com`")
+    st.caption("Not: Gönderilen bilgiler titizlikle incelenip size en kısa sürede detaylı bir sentez raporu olarak geri dönülecektir.")
