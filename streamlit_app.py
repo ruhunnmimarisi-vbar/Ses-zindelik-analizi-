@@ -21,7 +21,8 @@ Sesinizin akustik tınısı ile doğum haritanızın kozmik frekansını sentezl
 
 # --- OTOMATİK BURÇ HESAPLAMA FONKSİYONU ---
 def burc_hesapla(gun, ay):
-    ay_idx = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"].index(ay) + 1
+    ay_listesi = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"]
+    ay_idx = ay_listesi.index(ay) + 1
     
     if (ay_idx == 3 and gun >= 21) or (ay_idx == 4 and gun <= 20): return "Koç", "Ateş"
     elif (ay_idx == 4 and gun >= 21) or (ay_idx == 5 and gun <= 20): return "Boğa", "Toprak"
@@ -32,7 +33,7 @@ def burc_hesapla(gun, ay):
     elif (ay_idx == 9 and gun >= 23) or (ay_idx == 10 and gun <= 22): return "Terazi", "Hava"
     elif (ay_idx == 10 and gun >= 23) or (ay_idx == 11 and gun <= 21): return "Akrep", "Su"
     elif (ay_idx == 11 and gun >= 22) or (ay_idx == 12 and gun <= 21): return "Yay", "Ateş"
-    elif (ay_idx == 12 and gun >= 22) or (ay_idx == 1: gun <= 19): return "Oğlak", "Toprak"
+    elif (ay_idx == 12 and gun >= 22) or (ay_idx == 1 and gun <= 19): return "Oğlak", "Toprak"
     elif (ay_idx == 1 and gun >= 20) or (ay_idx == 2 and gun <= 18): return "Kova", "Hava"
     else: return "Balık", "Su"
 
@@ -94,25 +95,23 @@ if audio_bytes is not None:
                 with st.container(border=True):
                     st.subheader("🌿 Ruhun Mimarisi | Derinlemesine Bütünsel Sentez")
                     
-                    # Frekansa ve Elementə özel derin yorumlar
                     if anlik_f0 < 150:
-                        tiz_yorumu = "Sesiniz köklü, derin ve yeryüzüyle güçlü bir bağ kuran matra sahip. İçsel bir sükûnet arayışındasınız."
+                        tiz_yorumu = "Sesiniz köklü, derin ve yeryüzüyle güçlü bir bağ kuran tona sahip. İçsel bir sükûnet arayışındasınız."
                     elif anlik_f0 < 250:
                         tiz_yorumu = "Sesiniz akışkan, dengeli ve merkezinde duran şefkatli bir frekans yayıyor. Zihin ve beden uyum içinde."
                     else:
                         tiz_yorumu = "Sesiniz yüksek bir canlılık, ilham ve zihinsel hareketlilik barındırıyor. Kabuğuna sığmayan bir enerji akışınız var."
 
                     element_yorumlari = {
-                        "Toprak": "Oğlak enerjisinin o sağlam, yapılandırıcı ve kararlı duruşu, sesinizin yeryüzü tonlarıyla bütünleşiyor. Sınırlarınızı korumak ve somatik olarak bedene yerleşmek bugün sizin için şifalı.",
-                        "Ateş": "İçsel ateşinizin yaratıcı kıvılcımı ses tonunuza yansıyor. Tutkulu ve yönlendirici bir enerji taşıyorsunuz.",
-                        "Hava": "Zihinsel çeviklik ve bilgi akışı ön planda. Kelimeleriniz rüzgar gibi özgür ve akışkan.",
-                        "Su": "Duygusal derinlik ve sezgisel akış sesinizin tınısına derinlik katıyor. İç dünyanız oldukça zengin."
+                        "Toprak": f"{hesaplanan_burc} enerjisinin o sağlam, yapılandırıcı ve kararlı duruşu, sesinizin yeryüzü tonlarıyla bütünleşiyor. Sınırlarınızı korumak ve somatik olarak bedene yerleşmek bugün sizin için şifalı.",
+                        "Ateş": f"{hesaplanan_burc} burcunun içsel ateşindeki yaratıcı kıvılcım ses tonunuza yansıyor. Tutkulu ve yönlendirici bir enerji taşıyorsunuz.",
+                        "Hava": f"{hesaplanan_burc} enerjisiyle zihinsel çeviklik ve bilgi akışı ön planda. Kelimeleriniz rüzgar gibi özgür ve akışkan.",
+                        "Su": f"{hesaplanan_burc} burcunun getirdiği duygusal derinlik ve sezgisel akış sesinizin tınısına yankı katıyor. İç dünyanız oldukça zengin."
                     }
 
                     st.markdown(f"**Akustik Yankı:** {tiz_yorumu}")
                     st.markdown(f"**Elementsel Rehberlik ({element}):** {element_yorumlari.get(element, '')}")
                     
-                    # Doğal Taş Önerisi
                     taslar = {"Toprak": "Onyx ve Hematit", "Ateş": "Kırmızı Agat ve Obsidyen", "Hava": "Labradorit", "Su": "Lapis Lazuli ve Akuamarin"}
                     st.markdown(f"**Şifalı Taş Frekansı:** Bu dönemde enerjinizi dengelemek için **{taslar.get(element, 'Onyx')}** enerjisinden destek alabilirsiniz.")
 
